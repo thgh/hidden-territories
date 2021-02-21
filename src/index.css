@@ -5,9 +5,28 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+.field {
+  min-height: 50vh;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.field-inner {
+  position: relative;
+  transition: all 1s;
+}
+
+.actual {
+  position: absolute;
+  background: #ff000044;
+  transition: all 1s;
 }
