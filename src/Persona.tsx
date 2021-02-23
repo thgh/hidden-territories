@@ -3,20 +3,6 @@ import { PersonaConfig, rand } from './HiddenTerritories'
 const boxShadow = '0 0 8px rgba(0, 0, 0, .5)'
 
 export default function Persona({ persona: p }: { persona: PersonaConfig }) {
-  const eyeball = (
-    <div
-      style={{
-        position: 'absolute',
-        left: rand(20, 65) - 15 / p.eyeWidth / 2 + '%',
-        top: rand(20, 65) - 15 / p.eyeHeight / 2 + '%',
-        width: 15 / p.eyeWidth + '%',
-        height: 15 / p.eyeHeight + '%',
-        backgroundColor: 'black',
-        borderRadius: '50%',
-        transition: 'top .3s, left .3s',
-      }}
-    ></div>
-  )
   return (
     <div
       style={{
@@ -42,7 +28,7 @@ export default function Persona({ persona: p }: { persona: PersonaConfig }) {
           overflow: 'hidden',
         }}
       >
-        {eyeball}
+        <Eyeball p={p} />
       </div>
       <div
         style={{
@@ -57,8 +43,26 @@ export default function Persona({ persona: p }: { persona: PersonaConfig }) {
           overflow: 'hidden',
         }}
       >
-        {eyeball}
+        <Eyeball p={p} />
       </div>
     </div>
+  )
+}
+
+function Eyeball({ p }: { p: PersonaConfig }) {
+  const size = rand(10, 20)
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: rand(20, 65) - size / p.eyeWidth / 2 + '%',
+        top: rand(20, 65) - size / p.eyeHeight / 2 + '%',
+        width: size / p.eyeWidth + '%',
+        height: size / p.eyeHeight + '%',
+        backgroundColor: 'black',
+        borderRadius: '50%',
+        transition: 'top .3s, left .3s',
+      }}
+    />
   )
 }

@@ -1,6 +1,9 @@
-import type { Game } from 'boardgame.io'
+import type { Ctx, Game, State } from 'boardgame.io'
+import type { EventsAPI } from 'boardgame.io/dist/types/src/plugins/events/events'
 
 export const HiddenTerritories: Game = {
+  name: 'Hidden Territories',
+
   setup: (ctx) =>
     ({
       players: Array(ctx.numPlayers)
@@ -33,45 +36,6 @@ export const HiddenTerritories: Game = {
       positions: [],
     } as GameState),
 
-  turn: {
-    stages: {
-      advance_time: {
-        moves: {
-          playActionCard() {}, // on sequencer dashboard
-        },
-      },
-      roll: {
-        moves: { rollDice() {} },
-      },
-      allocate_dice: {
-        moves: {
-          allocateDice() {}, // allocate from pool to action cards
-          powerUpDistance() {}, // from dice pool
-        },
-      },
-      may_get_lost: {
-        moves: {
-          rollDice: () => ({ next: Math.random() ? 'got_lost' : 'travel' }),
-        },
-      },
-      got_lost: {},
-      travel: {
-        moves: {
-          nextCell() {},
-        },
-      },
-      travel_chits: {
-        moves: {
-          sneak: () => ({ next: Math.random() ? 'travel' : 'encounter' }),
-          evade: () => ({ next: Math.random() ? 'travel' : 'encounter' }),
-        },
-      },
-      arrived: { moves: { interact() {} } },
-      encounter: { moves: { fight() {}, resolve() {} } },
-      wait: {},
-    },
-  },
-
   endIf() {
     console.log('endif2')
   },
@@ -85,17 +49,77 @@ export const HiddenTerritories: Game = {
   phases: {
     build: {
       start: true,
-      endIf: (G) => G.deck <= 0,
       next: 'play',
     },
     play: {
       endIf: (G) => G.deck <= 0,
       next: 'final',
+
+      turn: {
+        stages: {
+          advance_time: {
+            moves: {
+              playActionCard() {}, // on sequencer dashboard
+            },
+          },
+          roll: {
+            moves: { rollDice() {} },
+          },
+          allocate_dice: {
+            moves: {
+              allocateDice() {}, // allocate from pool to action cards
+              powerUpDistance() {}, // from dice pool
+            },
+          },
+          may_get_lost: {
+            moves: {
+              rollDice: () => ({ next: Math.random() ? 'got_lost' : 'travel' }),
+            },
+          },
+          got_lost: {},
+          travel: {
+            moves: {
+              nextCell() {},
+            },
+          },
+          travel_chits: {
+            moves: {
+              sneak: () => ({ next: Math.random() ? 'travel' : 'encounter' }),
+              evade: () => ({ next: Math.random() ? 'travel' : 'encounter' }),
+            },
+          },
+          arrived: { moves: { interact() {} } },
+          encounter: { moves: { fight() {}, resolve() {} } },
+          wait: {},
+        },
+      },
     },
     final: {},
   },
 
   // playerView: PlayerView.STRIP_SECRETS,
+}
+
+export interface GameProps extends State<GameState, Ctx> {
+  events: EventsAPI
+  // G: GameState
+  // moves: Moves
+  // ctx: Ctx
+  // [key: string]: any
+}
+
+export interface Moves {
+  playActionCard: () => void
+  allocateDice: () => void
+  powerUpDistance: () => void
+  rollDice: () => void
+  nextCell: () => void
+  sneak: () => void
+  random: () => void
+  evade: () => void
+  interact: () => void
+  fight: () => void
+  resolve: () => void
 }
 
 export interface GameState {

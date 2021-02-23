@@ -1,6 +1,6 @@
-import React, { ReactNode, useMemo } from 'react'
+import { ReactNode, useMemo } from 'react'
 
-import { STONE_HEIGHT, useGrid } from './HexGrid'
+import { useGrid } from './HexGrid'
 
 const DEBUG = true
 

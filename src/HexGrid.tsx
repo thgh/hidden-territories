@@ -54,8 +54,8 @@ export function useGrid() {
 
 /** Tracks the tokens inside it which allows to calculate the center/zoom */
 export function HexGrid(props: any) {
-  const [s, setS] = useState(0)
-  const [tokens, setTokens] = useState(() => new Set<Token>())
+  const [, setS] = useState(0)
+  const [tokens] = useState(() => new Set<Token>())
   const effect = useCallback(
     (x: number, y: number) => {
       const token = { x, y }

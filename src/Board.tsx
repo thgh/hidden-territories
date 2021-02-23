@@ -2,10 +2,10 @@ import Hexagon from './Hexagon'
 import { HexGrid } from './HexGrid'
 import { HexGridUI } from './HexGridUI'
 import { HexToken } from './HexToken'
-import { GameState } from './HiddenTerritories'
+import { GameProps } from './HiddenTerritories'
 import Persona from './Persona'
 
-export function Board(props: { G: GameState; [key: string]: any }) {
+export function Board(props: GameProps) {
   console.log('prop', props)
 
   return (
@@ -26,28 +26,51 @@ export function Board(props: { G: GameState; [key: string]: any }) {
             </HexToken>
           ))}
           {props.G.players.map(({ x, y, id, persona }) => (
-            <HexToken x={x} y={y} key={id} dev>
+            <HexToken x={x} y={y} key={id}>
               <Persona persona={persona} />
             </HexToken>
           ))}
         </HexGridUI>
       </HexGrid>
-      {/* <HexGrid
-        levels={this.props.G.grid.levels}
-        // style={hexStyle}
-        colorMap={this.props.G.grid.colorMap}
-        onClick={this.cellClicked}
+
+      {props.ctx.phase === 'build' && <BuildPhase {...props} />}
+    </div>
+  )
+}
+
+function BuildPhase(props: GameProps) {
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        zIndex: 20,
+        width: '100%',
+        height: '100%',
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 600,
+          margin: 'auto',
+          padding: 100,
+          backgroundColor: '#444',
+        }}
       >
-        {this.props.G.insects.map((insect, i) => {
-          const { x, y, z } = insect.point
-          return (
-            <Token x={x} y={y} z={z} key={i}>
-              {x}-{y}
-            </Token>
-          )
-        })}
-      </HexGrid> */}
-      {/* {winner} */}
+        <form
+          style={{}}
+          onSubmit={(evt) => {
+            evt.preventDefault()
+            props.events.endPhase?.()
+          }}
+        >
+          <h1>Build phase</h1>
+          <p>Build your character</p>
+          <p>...</p>
+          <p>
+            <button type="submit">Play!</button>
+          </p>
+        </form>
+      </div>
     </div>
   )
 }
