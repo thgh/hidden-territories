@@ -1,49 +1,37 @@
 import type { Game } from 'boardgame.io'
 
-export interface GameState {
-  cells: Cell[]
-  players: Player[]
-}
-
-export interface Cell {
-  x: number
-  y: number
-}
-
-export interface Player {
-  id: string
-  inventory: []
-  backpack: []
-  health: number
-  gold: number
-  xp: number
-}
-
 export const HiddenTerritories: Game = {
-  setup: (ctx) => ({
-    positions: [],
-    cells: [
-      { x: 0, y: 0 },
-      { x: 1, y: -1 },
-      { x: 2, y: -2 },
-      { x: 3, y: -3 },
-      { x: 4, y: -4 },
-      { x: 5, y: -5 },
-      { x: 0, y: 1 },
-      { x: 0, y: 2 },
-      { x: 0, y: 3 },
-      { x: 0, y: 4 },
-      { x: 0, y: 5 },
-      { x: 1, y: 0 },
-      { x: 2, y: 0 },
-      { x: 3, y: 0 },
-      { x: 4, y: 0 },
-      { x: -5, y: 0 },
-    ],
-    players: Array(ctx.numPlayers)
-      .fill(0)
-      .map((_, id) => createPlayer(id + '')),
-  }),
+  setup: (ctx) =>
+    ({
+      players: Array(ctx.numPlayers)
+        .fill(0)
+        .map((_, id) => createPlayer({ id: id + '', x: id })),
+      cells: [
+        { x: 1, y: -1 },
+        { x: 2, y: -2 },
+        { x: 3, y: -3 },
+        { x: 4, y: -4 },
+        { x: 5, y: -5 },
+        { x: 0, y: 1 },
+        { x: 0, y: 2 },
+        { x: 0, y: 3 },
+        { x: 0, y: 4 },
+        { x: 0, y: 5 },
+        { x: 1, y: 0 },
+        { x: 2, y: 0 },
+        { x: 3, y: 0 },
+        { x: 4, y: 0 },
+        { x: 5, y: 0 },
+        // Hex hex
+        { x: -5, y: 0 },
+        { x: -5, y: 1 },
+        { x: -4, y: -1 },
+        { x: -3, y: -1 },
+        { x: -3, y: 0 },
+        { x: -4, y: 1 },
+      ],
+      positions: [],
+    } as GameState),
 
   turn: {
     stages: {
@@ -110,13 +98,75 @@ export const HiddenTerritories: Game = {
   // playerView: PlayerView.STRIP_SECRETS,
 }
 
-function createPlayer(id: string) {
+export interface GameState {
+  positions: Cell[]
+  cells: Cell[]
+  players: Player[]
+}
+
+export interface Cell {
+  x: number
+  y: number
+}
+
+export interface Player extends Cell {
+  id: string
+  inventory: Item[]
+  backpack: Item[]
+  persona: PersonaConfig
+  health: number
+  gold: number
+  xp: number
+}
+
+export interface Item {
+  owner: string
+}
+
+export interface PersonaConfig {
+  mouthSize: number
+  mouthHeight: number
+  eyeVertical: number
+  eyeWidth: number
+  eyeHeight: number
+  eyeHorizontal: number
+  faceColor: string
+}
+
+// Helpers
+
+function createPlayer(player: { id: string } & Partial<Player>) {
   return {
-    id,
     inventory: [],
     backpack: [],
     health: 12,
     gold: 0,
     xp: 0,
+    x: 0,
+    y: 0,
+    persona: createPersona(),
+    ...player,
   }
+}
+
+function createPersona(): PersonaConfig {
+  return {
+    mouthSize: Math.random(),
+    mouthHeight: Math.random(),
+    eyeVertical: rand(0.2, 0.6),
+    eyeHorizontal: rand(0.1, 0.3),
+    eyeWidth: rand(0.2, 0.6),
+    eyeHeight: rand(0.1, 0.5),
+    faceColor: color(),
+  }
+}
+
+export function color() {
+  var h = Math.floor(rand(0, 360))
+  var s = Math.floor(rand(42, 98))
+  var l = Math.floor(rand(30, 70))
+  return `hsl(${h},${s}%,${l}%)`
+}
+export function rand(min: number, max: number) {
+  return Math.random() * (max - min) + min
 }

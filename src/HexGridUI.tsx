@@ -10,7 +10,7 @@ export function HexGridUI({ children }: { children: ReactNode }) {
   const y = -(center.topMax + center.topMin) / 2
 
   const width = useMemo(() => window.innerWidth, [])
-  const height = useMemo(() => window.innerHeight * 0.96 - STONE_HEIGHT, [])
+  const height = useMemo(() => window.innerHeight, [])
   const zoom = Math.min(1.5, width / center.width, height / center.height)
 
   return (

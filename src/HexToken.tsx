@@ -1,7 +1,12 @@
 import { ReactNode } from 'react'
 import { STONE_HEIGHT, STONE_WIDTH, toField, Token, useToken } from './HexGrid'
 
-export function HexToken({ x, y, children }: Token & { children: ReactNode }) {
+export function HexToken({
+  x,
+  y,
+  children,
+  dev,
+}: Token & { children: ReactNode; dev?: boolean }) {
   useToken(x, y)
 
   const { top, left } = toField({ x, y })
@@ -16,7 +21,7 @@ export function HexToken({ x, y, children }: Token & { children: ReactNode }) {
         zIndex: height + 1,
         width: STONE_WIDTH,
         height: STONE_HEIGHT,
-        backgroundColor: 'red',
+        backgroundColor: dev ? '#ff000055' : '',
       }}
     >
       {children}

@@ -1,0 +1,33 @@
+
+
+heroku
+
+
+hexagons
+backgrounds on hex
+have multiple players
+lobby
+rooms, join
+
+everybody can start their turn at the same time
+  choose multiple moves
+  attack monster (if available)
+
+
+user.inventory
+user.hand.cards
+user.health
+user.gold
+user.xp
+
+connect to mysql database to fetch assets
+create readonly db user
+
+you see other players on hex
+
+
+
+
+
+GameState
+  uncoveredTiles
