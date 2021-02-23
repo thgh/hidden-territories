@@ -2,24 +2,11 @@
   "name": "hidden-territories",
   "version": "0.1.0",
   "private": true,
-  "dependencies": {
-    "@testing-library/jest-dom": "^5.11.4",
-    "@testing-library/react": "^11.1.0",
-    "@testing-library/user-event": "^12.7.3",
-    "boardgame.io": "^0.43.2",
-    "koa-static": "^5.0.0",
-    "react": "^17.0.1",
-    "react-dom": "^17.0.1",
-    "react-scripts": "4.0.3",
-    "react-transition-group": "^4.4.1",
-    "typescript": "^4.1.5",
-    "web-vitals": "^1.0.1"
-  },
   "scripts": {
     "start": "react-scripts start",
     "server": "node server/server.js",
     "build": "react-scripts build && npm run esbuild",
-    "esbuild": "NODE_ENV=production esbuild --bundle src/server.ts --outdir=server --platform=node --target=node12  --minify --sourcemap  --external:socket.io  --external:formidable --define:process.env.NODE_ENV='\"production\"'",
+    "esbuild": "NODE_ENV=production esbuild --bundle src/server.ts --outdir=server --platform=node --target=node12 --minify --sourcemap --external:socket.io --define:process.env.NODE_ENV='\"production\"'",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -41,11 +28,25 @@
       "last 1 safari version"
     ]
   },
+  "dependencies": {
+    "socket.io": "^2.2.0"
+  },
   "devDependencies": {
+    "@testing-library/jest-dom": "^5.11.4",
+    "@testing-library/react": "^11.1.0",
+    "@testing-library/user-event": "^12.7.3",
     "@types/koa-static": "^4.0.1",
     "@types/react": "^17.0.2",
     "@types/react-transition-group": "^4.4.1",
+    "boardgame.io": "^0.43.2",
     "esbuild": "^0.8.51",
-    "node-persist": "^3.1.0"
+    "koa-static": "^5.0.0",
+    "node-persist": "^3.1.0",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "react-scripts": "4.0.3",
+    "react-transition-group": "^4.4.1",
+    "typescript": "^4.1.5",
+    "web-vitals": "^1.0.1"
   }
 }
