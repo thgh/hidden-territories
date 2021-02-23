@@ -2,7 +2,7 @@ import type { Ctx, Game, State } from 'boardgame.io'
 import type { EventsAPI } from 'boardgame.io/dist/types/src/plugins/events/events'
 
 export const HiddenTerritories: Game = {
-  name: 'Hidden Territories',
+  name: 'HiddenTerritories',
 
   setup: (ctx) =>
     ({
