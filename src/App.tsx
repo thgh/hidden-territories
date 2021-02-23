@@ -1,4 +1,9 @@
-import { BrowserRouter as Router, Switch, Route } from 'react-router-dom'
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  useParams,
+} from 'react-router-dom'
 
 import { Local } from 'boardgame.io/multiplayer'
 // import { SocketIO } from 'boardgame.io/multiplayer'
@@ -11,10 +16,10 @@ export default function App() {
   return (
     <Router>
       <Switch>
-        <Route path="/game/:game/:playerID">
+        <Route path="/game/:matchID/:playerID">
           <Playground />
         </Route>
-        <Route path="/game/:game">
+        <Route path="/game/:matchID">
           <PlayerSelection />
         </Route>
         <Route path="/">
@@ -25,22 +30,27 @@ export default function App() {
   )
 }
 
-export function Playground({ playerID = '' }) {
+export function Playground() {
+  const { playerID, matchID } = useParams<{
+    playerID: string
+    matchID: string
+  }>()
   const Component = Client({
     game: HiddenTerritories,
     board: Board,
     multiplayer: Local(),
   })
-  return <Component playerID={playerID} />
+  return <Component matchID={matchID} playerID={playerID} />
 }
 
 export function PlayerSelection() {
+  const { matchID } = useParams<{ matchID: string }>()
   const Component = Client({
     game: HiddenTerritories,
     board: Board,
     multiplayer: Local(),
   })
-  return <Component />
+  return <Component matchID={matchID} />
 }
 
 export function Home() {

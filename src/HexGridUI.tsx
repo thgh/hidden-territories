@@ -1,4 +1,4 @@
-import { ReactNode, useMemo } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 
 import { useGrid } from './HexGrid'
 
@@ -8,9 +8,19 @@ export function HexGridUI({ children }: { children: ReactNode }) {
   const { center } = useGrid()
   const x = -(center.leftMax + center.leftMin) / 2
   const y = -(center.topMax + center.topMin) / 2
+  const [width, setWidth] = useState(() => window.innerWidth)
+  const [height, setHeight] = useState(() => window.innerHeight)
 
-  const width = useMemo(() => window.innerWidth, [])
-  const height = useMemo(() => window.innerHeight, [])
+  useEffect(() => {
+    const resize = () => {
+      setWidth(window.innerWidth)
+      setHeight(window.innerHeight)
+    }
+    window.addEventListener('resize', resize)
+    return () => {
+      window.removeEventListener('resize', resize)
+    }
+  }, [])
   const zoom = Math.min(1.5, width / center.width, height / center.height)
 
   return (
