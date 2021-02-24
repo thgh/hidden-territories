@@ -1,4 +1,6 @@
 import serve from 'koa-static'
+// @ts-ignore
+import rewrite from 'koa-rewrite'
 
 import { Server, FlatFile } from 'boardgame.io/server'
 import { HiddenTerritories } from './HiddenTerritories'
@@ -12,6 +14,8 @@ const server = Server({
     // ttl: (optional, see node-persist docs),
   }),
 })
+
+server.app.use(rewrite(/^\/game\/.*$/, '/'))
 
 server.app.use(serve('build'))
 

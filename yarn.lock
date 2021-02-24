@@ -7299,6 +7299,14 @@ koa-convert@^1.2.0:
     co "^4.6.0"
     koa-compose "^3.0.0"
 
+koa-rewrite@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/koa-rewrite/-/koa-rewrite-3.0.1.tgz#37c2ae31f31a7af98cc1b028020b321d75a7d294"
+  integrity sha512-KIGvmurKl2TwfceZEWzHWEmHHyJbkTKUZ2ebpa8G2Ywet0jc3zRhPwi8yxG/tEUra0wFAPDh9Ph8ln7okPcyEg==
+  dependencies:
+    debug "^3.1.0"
+    path-to-regexp "^2.1.0"
+
 koa-router@^7.2.1:
   version "7.4.0"
   resolved "https://registry.yarnpkg.com/koa-router/-/koa-router-7.4.0.tgz#aee1f7adc02d5cb31d7d67465c9eacc825e8c5e0"
@@ -8540,6 +8548,11 @@ path-to-regexp@^1.1.1, path-to-regexp@^1.7.0:
   integrity sha512-n43JRhlUKUAlibEJhPeir1ncUID16QnEjNpwzNdO3Lm4ywrBpBZ5oLD0I6br9evr1Y9JTqwRtAh7JLoOzAQdVA==
   dependencies:
     isarray "0.0.1"
+
+path-to-regexp@^2.1.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/path-to-regexp/-/path-to-regexp-2.4.0.tgz#35ce7f333d5616f1c1e1bfe266c3aba2e5b2e704"
+  integrity sha512-G6zHoVqC6GGTQkZwF4lkuEyMbVOjoBKAEybQUypI1WTkqinCOrq2x6U2+phkJ1XsEMTy4LjtwPI7HW+NVrRR2w==
 
 path-type@^2.0.0:
   version "2.0.0"
