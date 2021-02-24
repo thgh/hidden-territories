@@ -31,7 +31,7 @@ code {
 }
 
 .btn-action {
-  font-size: 14;
+  font: inherit;
   font-weight: 600;
   background-color: #77777744;
   color: inherit;

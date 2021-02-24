@@ -1,8 +1,11 @@
 import type { Ctx, Game, State } from 'boardgame.io'
+import { ActivePlayers } from 'boardgame.io/core'
 import type { EventsAPI } from 'boardgame.io/dist/types/src/plugins/events/events'
 
 export const HiddenTerritories: Game = {
   name: 'HiddenTerritories',
+  minPlayers: 1,
+  maxPlayers: 8,
 
   setup: (ctx) =>
     ({
@@ -53,21 +56,20 @@ export const HiddenTerritories: Game = {
     console.log('endif2')
   },
 
-  moves: {
-    travel(G: GameState, ctx, cell) {
-      const player = G.players.find((p) => p.id === ctx.currentPlayer)
-      if (!player) return alert('unexpected player')
-      player.x = cell.x
-      player.y = cell.y
-    },
-  },
-
   phases: {
     play: {
       start: true,
       next: 'final',
 
       turn: {
+        activePlayers: ActivePlayers.ALL_ONCE,
+        endIf(g, ctx) {
+          console.log('actives', Object.values(ctx.activePlayers || {}))
+          return !Object.values(ctx.activePlayers || {}).filter(
+            (s) => s !== 'wait'
+          ).length
+        },
+
         stages: {
           advance_time: {
             moves: {
@@ -75,7 +77,9 @@ export const HiddenTerritories: Game = {
             },
           },
           roll: {
-            moves: { rollDice() {} },
+            moves: {
+              rollDice() {},
+            },
           },
           allocate_dice: {
             moves: {
@@ -89,9 +93,19 @@ export const HiddenTerritories: Game = {
             },
           },
           got_lost: {},
+          attack: {
+            next: 'wait',
+          },
           travel: {
+            next: 'wait',
             moves: {
-              nextCell() {},
+              travel(G: GameState, ctx, cell) {
+                // console.log('trab', G, ctx)
+                const player = G.players.find((p) => p.id === ctx.playerID)
+                if (!player) return alert('unexpected player')
+                player.x = cell.x
+                player.y = cell.y
+              },
             },
           },
           travel_chits: {
@@ -102,7 +116,13 @@ export const HiddenTerritories: Game = {
           },
           arrived: { moves: { interact() {} } },
           encounter: { moves: { fight() {}, resolve() {} } },
-          wait: {},
+          wait: {
+            moves: {
+              check() {
+                console.log('check')
+              },
+            },
+          },
         },
       },
     },
@@ -116,6 +136,7 @@ export const HiddenTerritories: Game = {
 }
 
 export interface GameProps extends State<GameState, Ctx> {
+  playerID: any
   events: EventsAPI
   isActive: boolean
   isMultiplayer: boolean

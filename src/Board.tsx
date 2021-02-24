@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import Hexagon from './Hexagon'
 import { HexGrid } from './HexGrid'
 import { HexGridUI } from './HexGridUI'
@@ -87,6 +88,20 @@ function BuildPhase(props: GameProps) {
 }
 
 function PlayPhase(props: GameProps) {
+  const stage = props.ctx.activePlayers?.[props.playerID]
+
+  const endStage = () => {
+    props.events.endStage?.()
+    // Workaround to trigger the endIf hook
+    // @ts-ignore
+    setTimeout(props.moves.check, 500)
+  }
+
+  useEffect(() => {
+    // @ts-ignore
+    setTimeout(props.moves.check, 500)
+  }, [])
+
   return (
     <div
       style={{
@@ -103,7 +118,7 @@ function PlayPhase(props: GameProps) {
           margin: 'auto',
         }}
       >
-        <form
+        <div
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -111,34 +126,61 @@ function PlayPhase(props: GameProps) {
             borderBottomLeftRadius: 20,
             borderBottomRightRadius: 20,
             overflow: 'hidden',
-          }}
-          onSubmit={(evt) => {
-            evt.preventDefault()
-            props.events.endTurn?.()
+            fontSize: 14,
           }}
         >
-          <div
-            style={{
-              fontSize: 12,
-              fontWeight: 'bold',
-              opacity: 0.6,
-              padding: '12px 1.5em 12px',
-            }}
-          >
-            Choose your action
-          </div>
-          <div className="btn-action">
-            {props.ctx.numMoves && props.ctx.numMoves > 1
-              ? props.ctx.numMoves + ' moves'
-              : 'move'}
-          </div>
-          <div>
-            <ActionButton type="submit">attack</ActionButton>
-          </div>
-          <div style={{}}>
-            <ActionButton type="submit">end</ActionButton>
-          </div>
-        </form>
+          {stage === 'travel' ? (
+            <div>
+              <span style={{ padding: '12px 1.5em' }}>
+                Click on the hexagons to travel around
+                {/* {props.ctx.numMoves
+                  ? 'You did ' + props.ctx.numMoves + ' moves'
+                  : 'Click on the hexagons to travel around'} */}
+              </span>
+              <ActionButton type="button" onClick={endStage}>
+                end turn
+              </ActionButton>
+            </div>
+          ) : stage === 'wait' ? (
+            <div style={{ padding: '12px 1.5em' }}>
+              You are waiting for the other players
+            </div>
+          ) : !stage ? (
+            <div>
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 'bold',
+                  opacity: 0.6,
+                  padding: '12px 1.5em',
+                }}
+              >
+                Choose your action
+              </span>
+              <ActionButton
+                type="button"
+                onClick={() => props.events.setStage?.('attack')}
+              >
+                attack
+              </ActionButton>
+              <ActionButton
+                type="button"
+                onClick={() => props.events.setStage?.('travel')}
+              >
+                travel
+              </ActionButton>
+            </div>
+          ) : (
+            <div>
+              <span style={{ padding: '12px 1.5em' }}>
+                Unknown stage: {stage}
+              </span>
+              <ActionButton type="button" onClick={endStage}>
+                end turn
+              </ActionButton>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

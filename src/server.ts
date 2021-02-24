@@ -10,7 +10,7 @@ const server = Server({
   games: [HiddenTerritories],
   db: new FlatFile({
     dir: './storage',
-    logging: true,
+    // logging: true,
     // ttl: (optional, see node-persist docs),
   }),
 })
