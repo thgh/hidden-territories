@@ -88,7 +88,7 @@ export function Home() {
 
 function Redirecter(props: any) {
   useEffect(() => {
-    window.location.href = '/game/' + props.matchID + '/' + props.playerID
+    window.location.href = '/game/R_' + props.matchID + '/' + props.playerID
   }, [])
   return <div>{JSON.stringify(props, null, 2)}</div>
 }
