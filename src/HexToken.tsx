@@ -16,12 +16,14 @@ export function HexToken({
     <div
       style={{
         position: 'absolute',
-        top: top - height * 7,
-        left: left,
+        // top: top - height * 7,
+        // left: left,
         zIndex: height + 1,
         width: STONE_WIDTH,
         height: STONE_HEIGHT,
         backgroundColor: dev ? '#ff000055' : '',
+        transform: `translate( ${left}px,${top - height * 7}px)`,
+        transition: 'transform .5s',
       }}
     >
       {children}

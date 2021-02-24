@@ -8,6 +8,8 @@ import Persona from './Persona'
 export function Board(props: GameProps) {
   console.log('prop', props)
 
+  const { ctx } = props
+
   return (
     <div
       style={{
@@ -23,9 +25,14 @@ export function Board(props: GameProps) {
     >
       <HexGrid>
         <HexGridUI>
-          {props.G.cells.map(({ x, y }) => (
+          {props.G.cells.map(({ x, y, terrain }) => (
             <HexToken x={x} y={y} key={x + '.' + y}>
-              <Hexagon label={x + ' | ' + y} />
+              <Hexagon
+                label={x + ' | ' + y}
+                terrain={terrain}
+                //@ts-ignore
+                onClick={() => props.moves.travel({ x, y })}
+              />
             </HexToken>
           ))}
           {props.G.players.map(({ x, y, id, persona }) => (
@@ -36,7 +43,8 @@ export function Board(props: GameProps) {
         </HexGridUI>
       </HexGrid>
 
-      {props.ctx.phase === 'build' && <BuildPhase {...props} />}
+      {ctx.phase === 'build' && <BuildPhase {...props} />}
+      {ctx.phase === 'play' && props.isActive && <PlayPhase {...props} />}
     </div>
   )
 }
@@ -76,4 +84,65 @@ function BuildPhase(props: GameProps) {
       </div>
     </div>
   )
+}
+
+function PlayPhase(props: GameProps) {
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        zIndex: 20,
+        width: '100%',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          maxWidth: 600,
+          margin: 'auto',
+        }}
+      >
+        <form
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            backgroundColor: '#333',
+            borderBottomLeftRadius: 20,
+            borderBottomRightRadius: 20,
+            overflow: 'hidden',
+          }}
+          onSubmit={(evt) => {
+            evt.preventDefault()
+            props.events.endTurn?.()
+          }}
+        >
+          <div
+            style={{
+              fontSize: 12,
+              fontWeight: 'bold',
+              opacity: 0.6,
+              padding: '12px 1.5em 12px',
+            }}
+          >
+            Choose your action
+          </div>
+          <div className="btn-action">
+            {props.ctx.numMoves && props.ctx.numMoves > 1
+              ? props.ctx.numMoves + ' moves'
+              : 'move'}
+          </div>
+          <div>
+            <ActionButton type="submit">attack</ActionButton>
+          </div>
+          <div style={{}}>
+            <ActionButton type="submit">end</ActionButton>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+function ActionButton(props: any) {
+  return <button className="btn-action" {...props} />
 }

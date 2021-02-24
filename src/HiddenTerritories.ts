@@ -10,28 +10,41 @@ export const HiddenTerritories: Game = {
         .fill(0)
         .map((_, id) => createPlayer({ id: id + '', x: id })),
       cells: [
-        { x: 1, y: -1 },
-        { x: 2, y: -2 },
-        { x: 3, y: -3 },
-        { x: 4, y: -4 },
-        { x: 5, y: -5 },
-        { x: 0, y: 1 },
-        { x: 0, y: 2 },
-        { x: 0, y: 3 },
-        { x: 0, y: 4 },
-        { x: 0, y: 5 },
-        { x: 1, y: 0 },
-        { x: 2, y: 0 },
-        { x: 3, y: 0 },
-        { x: 4, y: 0 },
-        { x: 5, y: 0 },
+        { x: 0, y: 0, terrain: 0 },
+        { x: 0, y: 1, terrain: 0 },
+        { x: 0, y: 2, terrain: 0 },
+        { x: 1, y: -1, terrain: 0 },
+        { x: 1, y: 0, terrain: 0 },
+        { x: 2, y: -1, terrain: 0 },
+        { x: 2, y: -2, terrain: 0 },
+        { x: 2, y: 0, terrain: 0 },
+        { x: 1, y: 1, terrain: 0 },
+        { x: 3, y: -2, terrain: 0 },
+
+        { x: -1, y: -1, terrain: 2 },
+        { x: -1, y: -2, terrain: 2 },
+        { x: -1, y: 0, terrain: 2 },
+        { x: -1, y: 1, terrain: 2 },
+        { x: -2, y: -1, terrain: 2 },
+        { x: -2, y: -2, terrain: 2 },
+        { x: -2, y: -3, terrain: 2 },
+        { x: -2, y: 0, terrain: 2 },
+        { x: -2, y: 1, terrain: 2 },
+        { x: -3, y: -2, terrain: 2 },
+        { x: -3, y: -3, terrain: 2 },
+        { x: 0, y: -1, terrain: 2 },
+        { x: 0, y: -2, terrain: 2 },
+        { x: 1, y: -2, terrain: 2 },
+        { x: 2, y: -3, terrain: 2 },
+        { x: 3, y: -3, terrain: 2 },
         // Hex hex
-        { x: -5, y: 0 },
-        { x: -5, y: 1 },
-        { x: -4, y: -1 },
-        { x: -3, y: -1 },
-        { x: -3, y: 0 },
-        { x: -4, y: 1 },
+        { x: -3, y: -1, terrain: 1 },
+        { x: -3, y: 0, terrain: 1 },
+        { x: -4, y: -1, terrain: 1 },
+        { x: -4, y: 0, terrain: 1 },
+        { x: -4, y: 1, terrain: 1 },
+        { x: -5, y: 0, terrain: 1 },
+        { x: -5, y: 1, terrain: 1 },
       ],
       positions: [],
     } as GameState),
@@ -41,18 +54,17 @@ export const HiddenTerritories: Game = {
   },
 
   moves: {
-    clickCell: (G, ctx, id) => {
-      G.cells[id] = ctx.currentPlayer
+    travel(G: GameState, ctx, cell) {
+      const player = G.players.find((p) => p.id === ctx.currentPlayer)
+      if (!player) return alert('unexpected player')
+      player.x = cell.x
+      player.y = cell.y
     },
   },
 
   phases: {
-    build: {
-      start: true,
-      next: 'play',
-    },
     play: {
-      endIf: (G) => G.deck <= 0,
+      start: true,
       next: 'final',
 
       turn: {
@@ -95,6 +107,9 @@ export const HiddenTerritories: Game = {
       },
     },
     final: {},
+    build: {
+      next: 'play',
+    },
   },
 
   // playerView: PlayerView.STRIP_SECRETS,
@@ -102,13 +117,16 @@ export const HiddenTerritories: Game = {
 
 export interface GameProps extends State<GameState, Ctx> {
   events: EventsAPI
+  isActive: boolean
+  isMultiplayer: boolean
   // G: GameState
-  // moves: Moves
+  // moves: API
   // ctx: Ctx
   // [key: string]: any
 }
 
 export interface Moves {
+  travel: (cell: Cell) => void
   playActionCard: () => void
   allocateDice: () => void
   powerUpDistance: () => void
@@ -131,6 +149,7 @@ export interface GameState {
 export interface Cell {
   x: number
   y: number
+  terrain?: number
 }
 
 export interface Player extends Cell {

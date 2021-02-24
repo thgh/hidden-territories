@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import {
   BrowserRouter as Router,
   Switch,
@@ -6,8 +7,8 @@ import {
 } from 'react-router-dom'
 
 import { Local } from 'boardgame.io/multiplayer'
-// import { SocketIO } from 'boardgame.io/multiplayer'
-// : SocketIO({ server: 'localhost:8000' })
+import { SocketIO } from 'boardgame.io/multiplayer'
+
 import { Client, Lobby } from 'boardgame.io/react'
 import { Board } from './Board'
 import { HiddenTerritories } from './HiddenTerritories'
@@ -38,9 +39,18 @@ export function Playground() {
   const Component = Client({
     game: HiddenTerritories,
     board: Board,
-    multiplayer: Local(),
+    multiplayer: SocketIO({ server: ioServer() }),
   })
-  return <Component matchID={matchID} playerID={playerID} />
+  return (
+    <Component
+      matchID={matchID}
+      playerID={playerID}
+      credentials={document.cookie.replace(
+        /(?:(?:^|.*;\s*)lobbyState\s*\=\s*([^;]*).*$)|^.*$/,
+        '$1'
+      )}
+    />
+  )
 }
 
 export function PlayerSelection() {
@@ -60,7 +70,12 @@ export function Home() {
       <h3>Public lobby</h3>
       <fieldset>
         <legend>Built-in lobby component</legend>
-        <Lobby gameComponents={[{ game: HiddenTerritories, board: Board }]} />
+        <Lobby
+          lobbyServer={gameServer()}
+          gameServer={gameServer()}
+          debug
+          gameComponents={[{ game: HiddenTerritories, board: Redirecter }]}
+        />
       </fieldset>
 
       <h3>Private game</h3>
@@ -69,4 +84,20 @@ export function Home() {
       <button>Create</button>
     </div>
   )
+}
+
+function Redirecter(props: any) {
+  useEffect(() => {
+    window.location.href = '/game/' + props.matchID + '/' + props.playerID
+  }, [])
+  return <div>{JSON.stringify(props, null, 2)}</div>
+}
+
+function ioServer() {
+  return window.location.href.includes(':3000') ? 'localhost:8000' : undefined
+}
+function gameServer() {
+  return window.location.href.includes(':3000')
+    ? 'http://localhost:8000'
+    : undefined
 }

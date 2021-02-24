@@ -55,13 +55,13 @@ function Eyeball({ p }: { p: PersonaConfig }) {
     <div
       style={{
         position: 'absolute',
-        left: rand(20, 65) - size / p.eyeWidth / 2 + '%',
-        top: rand(20, 65) - size / p.eyeHeight / 2 + '%',
+        left: rand(20, 80) - size / p.eyeWidth / 2 + '%',
+        top: rand(20, 80) - size / p.eyeHeight / 2 + '%',
         width: size / p.eyeWidth + '%',
         height: size / p.eyeHeight + '%',
         backgroundColor: 'black',
         borderRadius: '50%',
-        transition: 'top .3s, left .3s',
+        transition: 'top .3s, left .3s, width .3s, height .3s',
       }}
     />
   )
