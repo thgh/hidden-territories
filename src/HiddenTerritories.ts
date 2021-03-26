@@ -7,11 +7,15 @@ export const HiddenTerritories: Game = {
   minPlayers: 1,
   maxPlayers: 8,
 
-  setup: (ctx) =>
+  setup: () =>
     ({
-      players: Array(ctx.numPlayers)
-        .fill(0)
-        .map((_, id) => createPlayer({ id: id + '', x: id })),
+      vote: null,
+      quest: null,
+
+      waiting: [],
+
+      activePlayer: 0,
+      players: [],
       cells: [
         { x: 0, y: 0, terrain: 0 },
         { x: 0, y: 1, terrain: 0 },
@@ -53,12 +57,50 @@ export const HiddenTerritories: Game = {
     } as GameState),
 
   endIf() {
-    console.log('endif2')
+    // console.log('endif2')
+    // if (victorypoints > 10000)
+    // if everyone is dead
+    // return
   },
 
   phases: {
-    play: {
+    // Configure quests
+    //   - Quest have a center position, players have to gather around it to start
+    prepare: {
       start: true,
+      moves: {
+        toggleVote,
+        loadQuest,
+      },
+      turn: {
+        activePlayers: ActivePlayers.ALL,
+      },
+      next: 'plan',
+    },
+
+    // Lay out cards in front of you
+    plan: {
+      moves: {
+        initPlayer,
+        planAction,
+        waitForAll,
+      },
+      turn: {
+        activePlayers: ActivePlayers.ALL,
+      },
+      next: 'execute',
+    },
+
+    // Card
+    execute: {
+      moves: {
+        executeCard() {},
+        done() {},
+      },
+      next: 'play',
+    },
+
+    play: {
       next: 'final',
 
       turn: {
@@ -71,6 +113,28 @@ export const HiddenTerritories: Game = {
         },
 
         stages: {
+          planning: {
+            moves: {
+              // Plan 5 slot
+              planSlot() {},
+              confirm: (ctx) => {
+                if (ctx.lastPlayer) {
+                  // start executing the actions
+                  // execute first card of ctx.activePlayer (move, )
+                  // execute second card
+                  // ...
+                  // execute first card of next player based on initiative order
+                  // execute second card
+                  // ...
+                } else {
+                  return { next: 'planning_done' }
+                }
+              },
+            },
+          },
+          planning_done: {
+            moves: {},
+          },
           advance_time: {
             moves: {
               playActionCard() {}, // on sequencer dashboard
@@ -127,12 +191,113 @@ export const HiddenTerritories: Game = {
       },
     },
     final: {},
-    build: {
-      next: 'play',
-    },
   },
 
   // playerView: PlayerView.STRIP_SECRETS,
+}
+
+const items = [
+  {
+    type: 'food',
+    name: 'Rabbit',
+    health: 1,
+    water: 1,
+  },
+  {
+    type: 'food',
+    name: 'Berries',
+    health: 1,
+  },
+  {
+    type: 'food',
+    name: 'Water',
+    water: 1,
+  },
+  {
+    type: 'raw',
+    name: 'Copper',
+    gold: 487,
+  },
+  {
+    type: 'poi',
+    name: 'Ruin',
+  },
+  {
+    type: 'cache',
+    name: 'Chest',
+    items: [
+      {
+        type: 'raw',
+        name: 'Treasure',
+      },
+      {
+        type: 'trap',
+        name: 'Pungy stick',
+      },
+    ],
+  },
+]
+
+const denizens = [
+  {
+    type: '?',
+    name: 'Goblin',
+    xp: 736,
+    drops: [
+      {
+        type: 'raw',
+        name: 'Gold',
+        gold: 18,
+      },
+      {
+        type: 'weapon',
+        name: 'Dagger',
+        gold: 18,
+      },
+    ],
+  },
+]
+
+// Available in execution stage
+const actions = {
+  move(position: any, { flying = false, swimming = false }) {
+    // move as far as possible to position
+    // if (flying) skip over intervening hexes to destination
+    // if (swimming) skip over intervening hexes to destination
+  },
+  follow(player: any) {
+    // get as close as possible to player X following the trail
+  },
+  avoid(player: any) {
+    // get as far as possible from player X
+  },
+  search(types = ['food']) {
+    // look for food and water and mana
+    // look for anything in the current hex
+    // items.filter((i) => i.type === types[0])
+  },
+  engage(denizenId: any, attack = 'melee') {
+    // if (denizen is not in same hex) skip
+    // if (attack =melee) opponent can respond
+    // if (attack =ranged) opponent can not respond
+    // if (attack =spell)
+    // player.mana -= 5
+    // player.health -= 5
+    // if (successful) {
+    //   player.items.push(...denizen.drops)
+    // }
+  },
+}
+
+const optionTree: { [key: string]: string[] } = {
+  move: ['walk', 'fly', 'swim', 'follow', 'avoid'],
+  search: ['food', 'cache'],
+  engage: ['melee', 'ranged', 'spell'],
+}
+
+// @ts-ignore
+if (window.false) {
+  console.log('i', items, denizens, actions, optionTree)
 }
 
 export interface GameProps extends State<GameState, Ctx> {
@@ -141,14 +306,22 @@ export interface GameProps extends State<GameState, Ctx> {
   isActive: boolean
   isMultiplayer: boolean
   // G: GameState
-  // moves: API
+  moves: Record<string, any>
   // ctx: Ctx
   // [key: string]: any
 }
 
 export interface Moves {
+  // Prepare
+  toggleVote: (option: number) => void
+  loadQuest: (quest: Quest) => void
+
+  // Plan
+  planAction: PlanActionCard
+  initPlayer: (options: InitPlayerOptions) => void
+
+  // Execute
   travel: (cell: Cell) => void
-  playActionCard: () => void
   allocateDice: () => void
   powerUpDistance: () => void
   rollDice: () => void
@@ -162,9 +335,18 @@ export interface Moves {
 }
 
 export interface GameState {
+  vote: null | { [key: string]: number }
+  quest: null | Quest
+
+  waiting: string[]
+
   positions: Cell[]
   cells: Cell[]
   players: Player[]
+}
+
+export interface Quest {
+  id: string
 }
 
 export interface Cell {
@@ -175,12 +357,16 @@ export interface Cell {
 
 export interface Player extends Cell {
   id: string
+  // split in spellbook (spells)
+  // split in journal (lore)
+  // split in backpack (raw)
+  // split in spellbook (spells)
   inventory: Item[]
-  backpack: Item[]
   persona: PersonaConfig
   health: number
   gold: number
   xp: number
+  cards: (ActionCard | null)[]
 }
 
 export interface Item {
@@ -197,12 +383,90 @@ export interface PersonaConfig {
   faceColor: string
 }
 
+export interface ActionCard {
+  type: string
+  modifier?: string
+}
+
+export type PlanActionCard = (option: PlanActionCardProps) => void
+
+export interface PlanActionCardProps {
+  action: ActionCard | null
+  index: number
+}
+
+export interface InitPlayerOptions {}
+
+// Moves
+
+// Moves > Prepare
+
+function toggleVote(G: GameState, ctx: Ctx, vote: number) {
+  if (!ctx.playerID) {
+    return console.log('cannot vote', vote)
+  }
+  if (!G.vote) {
+    G.vote = {}
+  }
+  if (G.vote[ctx.playerID] === vote) {
+    delete G.vote[ctx.playerID]
+  } else {
+    G.vote[ctx.playerID] = vote
+  }
+}
+function loadQuest(G: GameState, ctx: Ctx, quest: Quest) {
+  G.quest = quest
+
+  ctx.events?.endPhase?.()
+}
+
+// Moves > Plan
+
+function initPlayer(G: GameState, ctx: Ctx, options: InitPlayerOptions) {
+  if (!ctx.playerID) {
+    return console.warn('no player?')
+  }
+  if (G.players.find((p) => p.id === ctx.playerID)) {
+    return console.warn('player already exists')
+  }
+  G.players.push(createPlayer({ ...options, id: ctx.playerID }))
+}
+function planAction(G: GameState, ctx: Ctx, plan: PlanActionCardProps) {
+  if (!ctx.playerID) {
+    return console.warn('no player?')
+  }
+  const me = G.players.find((p) => p.id === ctx.playerID)
+  if (!me) {
+    return console.warn('player not found')
+  }
+  me.cards[plan.index] = plan.action
+}
+function waitForAll(G: GameState, ctx: Ctx) {
+  if (!ctx.playerID) {
+    return console.warn('no player?')
+  }
+  if (G.waiting.includes(ctx.playerID)) {
+    return console.warn('already waiting...')
+  }
+
+  if (G.waiting.length + 1 >= G.players.length) {
+    console.log('everyone is waiting, lets go to next phase')
+    ctx.events?.endPhase?.()
+    return
+  }
+
+  G.waiting.push(ctx.playerID)
+}
+
+// Moves > Execute
+
 // Helpers
 
-function createPlayer(player: { id: string } & Partial<Player>) {
+export function createPlayer(player: { id: string } & Partial<Player>) {
   return {
     inventory: [],
     backpack: [],
+    cards: [null, null, null, null, null],
     health: 12,
     gold: 0,
     xp: 0,
@@ -213,7 +477,7 @@ function createPlayer(player: { id: string } & Partial<Player>) {
   }
 }
 
-function createPersona(): PersonaConfig {
+export function createPersona(): PersonaConfig {
   return {
     mouthSize: Math.random(),
     mouthHeight: Math.random(),

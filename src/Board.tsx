@@ -1,9 +1,14 @@
-import { useEffect } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import Hexagon from './Hexagon'
 import { HexGrid } from './HexGrid'
 import { HexGridUI } from './HexGridUI'
 import { HexToken } from './HexToken'
-import { GameProps } from './HiddenTerritories'
+import {
+  ActionCard,
+  createPersona,
+  GameProps,
+  PlanActionCard,
+} from './HiddenTerritories'
 import Persona from './Persona'
 
 export function Board(props: GameProps) {
@@ -44,46 +49,100 @@ export function Board(props: GameProps) {
         </HexGridUI>
       </HexGrid>
 
-      {ctx.phase === 'build' && <BuildPhase {...props} />}
+      {ctx.phase === 'prepare' && <PreparePhase {...props} />}
+      {ctx.phase === 'plan' && <PlanPhase {...props} />}
       {ctx.phase === 'play' && props.isActive && <PlayPhase {...props} />}
     </div>
   )
 }
 
-function BuildPhase(props: GameProps) {
+function PreparePhase({ moves, G }: GameProps) {
+  const votes = Object.values(G.vote || {})
   return (
-    <div
-      style={{
-        position: 'absolute',
-        zIndex: 20,
-        width: '100%',
-        height: '100%',
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 600,
-          margin: 'auto',
-          padding: 100,
-          backgroundColor: '#444',
-        }}
-      >
-        <form
-          style={{}}
-          onSubmit={(evt) => {
-            evt.preventDefault()
-            props.events.endPhase?.()
-          }}
-        >
-          <h1>Build phase</h1>
-          <p>Build your character</p>
-          <p>...</p>
+    <Modal padding>
+      <h1>Prepare phase</h1>
+      <h2>Choose a quest</h2>
+      {[1, 2, 3].map((quest) => {
+        const count = votes.filter((v) => v === quest).length
+        return (
           <p>
-            <button type="submit">Play!</button>
+            <button
+              className="btn btn-primary"
+              type="button"
+              onClick={() => moves.toggleVote(quest)}
+            >
+              Quest {quest}
+            </button>
+            {count ? (
+              <span style={{ marginLeft: 24 }}>
+                {count} votes
+                <button
+                  className="btn btn-subtle"
+                  type="button"
+                  style={{ marginLeft: 24 }}
+                  onClick={() => moves.loadQuest(quest)}
+                >
+                  Confirm
+                </button>
+              </span>
+            ) : null}
           </p>
-        </form>
+        )
+      })}
+    </Modal>
+  )
+}
+
+function PlanPhase(props: GameProps) {
+  console.log('planph')
+  const { G, moves, playerID } = props
+  const me = G.players.find((p) => p.id === playerID)!
+
+  if (!me) {
+    return <InitPlayerModal {...props} />
+  }
+
+  return (
+    <Modal padding>
+      <h1>Muster phase</h1>
+      <h2>Lay out which actions you want to do during this turn.</h2>
+      <Cards
+        cards={me?.cards}
+        planAction={(k) => {
+          console.log('plnaction', k)
+          moves.planAction(k)
+        }}
+      />
+      <button className="btn btn-primary" onClick={moves.waitForAll}>
+        Confirm
+      </button>
+      {G.waiting.join(', ')}
+    </Modal>
+  )
+}
+
+function InitPlayerModal({ moves }: GameProps) {
+  const [persona, setPersona] = useState(() => createPersona())
+  return (
+    <Modal padding>
+      <h1>Add player</h1>
+      <h2>It's your first turn, let's setup your profile.</h2>
+      <div style={{ width: 100, height: 110 }}>
+        <Persona persona={persona} />
       </div>
-    </div>
+      <div style={{ marginBottom: 24 }}>
+        <button
+          className="btn btn-subtle"
+          onClick={() => setPersona(createPersona())}
+        >
+          Randomize
+        </button>
+      </div>
+      <button className="btn btn-primary" onClick={() => moves.initPlayer({})}>
+        Confirm
+      </button>
+      <button className="btn btn-subtle">Continue as spectator</button>
+    </Modal>
   )
 }
 
@@ -93,14 +152,12 @@ function PlayPhase(props: GameProps) {
   const endStage = () => {
     props.events.endStage?.()
     // Workaround to trigger the endIf hook
-    // @ts-ignore
     setTimeout(props.moves.check, 500)
   }
 
   useEffect(() => {
-    // @ts-ignore
     setTimeout(props.moves.check, 500)
-  }, [])
+  }, [props.moves.check])
 
   return (
     <div
@@ -185,6 +242,155 @@ function PlayPhase(props: GameProps) {
     </div>
   )
 }
+
 function ActionButton(props: any) {
   return <button className="btn-action" {...props} />
+}
+
+function Modal({
+  children,
+  padding = false,
+  row = false,
+}: {
+  children: ReactNode
+  padding?: boolean
+  row?: boolean
+}) {
+  return (
+    <div className="modal">
+      <div
+        className="modal-body"
+        style={{
+          maxWidth: 600,
+          margin: 'auto',
+          padding: padding ? 24 : 0,
+          borderBottomLeftRadius: 20,
+          borderBottomRightRadius: 20,
+          overflow: 'hidden',
+          fontSize: 14,
+          ...(row && {
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+          }),
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  )
+}
+
+function Cards({
+  cards,
+  planAction,
+}: {
+  cards: (ActionCard | null)[]
+  planAction: PlanActionCard
+}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        margin: '1em 0',
+        justifyContent: 'space-between',
+      }}
+    >
+      {cards
+        .concat(null, null, null, null, null)
+        .slice(0, 5)
+        .map((action, index) => (
+          <Card
+            key={index}
+            selected={action}
+            index={index}
+            planAction={planAction}
+          />
+        ))}
+    </div>
+  )
+}
+function Card({
+  selected,
+  index,
+  planAction,
+}: {
+  selected: ActionCard | null
+  index: number
+  planAction: PlanActionCard
+}) {
+  const optionTree: { [key: string]: string[] } = {
+    move: ['walk', 'fly', 'swim', 'follow', 'avoid'],
+    search: ['food', 'cache'],
+    engage: ['melee', 'ranged', 'spell'],
+  }
+  return (
+    <div
+      className="card"
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        flex: '0 0 auto',
+        marginRight: 10,
+        width: 100,
+        height: 150,
+        borderRadius: 6,
+        backgroundColor: '#77777733',
+      }}
+    >
+      {!selected ? (
+        Object.keys(optionTree).map((option) => (
+          <button
+            key={option}
+            className="btn btn-card"
+            onClick={() =>
+              planAction({
+                index,
+                action: { type: option, modifier: optionTree[option][0] },
+              })
+            }
+          >
+            {option}
+          </button>
+        ))
+      ) : !optionTree[selected.type] ? (
+        <>
+          <div>wut {selected.type}</div>
+        </>
+      ) : (
+        <>
+          {optionTree[selected.type].map((mod) => (
+            <button
+              key={mod}
+              className={
+                'btn btn-card ' +
+                (selected.modifier === mod ? ' btn-card--selected' : '')
+              }
+              disabled={selected.modifier === mod}
+              onClick={() =>
+                planAction({
+                  index,
+                  action: { type: selected.type, modifier: mod },
+                })
+              }
+            >
+              {mod}
+            </button>
+          ))}
+          <button
+            className="btn btn-card"
+            onClick={() =>
+              planAction({
+                index,
+                action: null,
+              })
+            }
+          >
+            other
+          </button>
+        </>
+      )}
+    </div>
+  )
 }

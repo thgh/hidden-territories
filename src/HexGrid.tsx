@@ -44,7 +44,7 @@ export function useToken(x: number, y: number) {
 
 export function useGrid() {
   const { tokens } = useContext(Context)
-  console.log('t', tokens)
+  // console.log('useGrid tokens', tokens)
   return {
     center: getCenter(Array.from(tokens.values())),
     width: 100,

@@ -46,7 +46,7 @@ export function Playground() {
       matchID={matchID}
       playerID={playerID}
       credentials={document.cookie.replace(
-        /(?:(?:^|.*;\s*)lobbyState\s*\=\s*([^;]*).*$)|^.*$/,
+        /(?:(?:^|.*;\s*)lobbyState\s*=\s*([^;]*).*$)|^.*$/,
         '$1'
       )}
     />
@@ -89,7 +89,7 @@ export function Home() {
 function Redirecter(props: any) {
   useEffect(() => {
     window.location.href = '/game/R_' + props.matchID + '/' + props.playerID
-  }, [])
+  }, [props.matchID, props.playerID])
   return <div>{JSON.stringify(props, null, 2)}</div>
 }
 
