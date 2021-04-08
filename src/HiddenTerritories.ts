@@ -4,7 +4,7 @@ import type { EventsAPI } from 'boardgame.io/dist/types/src/plugins/events/event
 
 export const HiddenTerritories: Game = {
   name: 'HiddenTerritories',
-  minPlayers: 1,
+  minPlayers: 2,
   maxPlayers: 8,
 
   setup: () =>
@@ -96,6 +96,9 @@ export const HiddenTerritories: Game = {
       moves: {
         executeCard() {},
         done() {},
+      },
+      turn: {
+        activePlayers: ActivePlayers.ALL,
       },
       next: 'play',
     },
@@ -289,14 +292,19 @@ const actions = {
   },
 }
 
-const optionTree: { [key: string]: string[] } = {
+export const optionTree: { [key: string]: string[] } = {
   move: ['walk', 'fly', 'swim', 'follow', 'avoid'],
   search: ['food', 'cache'],
   engage: ['melee', 'ranged', 'spell'],
+  attack: [],
+  follow: [],
+  stealth: [],
+  parlay: [],
+  rest: [],
 }
 
 // @ts-ignore
-if (window.false) {
+if (typeof window !== 'undefined' && window.false) {
   console.log('i', items, denizens, actions, optionTree)
 }
 
@@ -450,12 +458,17 @@ function waitForAll(G: GameState, ctx: Ctx) {
   }
 
   if (G.waiting.length + 1 >= G.players.length) {
-    console.log('everyone is waiting, lets go to next phase')
+    console.log(
+      'everyone is waiting, lets go to next phase',
+      G.waiting.length,
+      G.players.length
+    )
     ctx.events?.endPhase?.()
     return
   }
 
-  G.waiting.push(ctx.playerID)
+  console.log('letswait', G.waiting.concat(ctx.playerID))
+  G.waiting = JSON.parse(JSON.stringify(G.waiting.concat(ctx.playerID)))
 }
 
 // Moves > Execute

@@ -7,6 +7,7 @@ import {
   ActionCard,
   createPersona,
   GameProps,
+  optionTree,
   PlanActionCard,
 } from './HiddenTerritories'
 import Persona from './Persona'
@@ -266,7 +267,7 @@ function Modal({
           padding: padding ? 24 : 0,
           borderBottomLeftRadius: 20,
           borderBottomRightRadius: 20,
-          overflow: 'hidden',
+          // overflow: 'hidden',
           fontSize: 14,
           ...(row && {
             display: 'flex',
@@ -319,15 +320,12 @@ function Card({
   index: number
   planAction: PlanActionCard
 }) {
-  const optionTree: { [key: string]: string[] } = {
-    move: ['walk', 'fly', 'swim', 'follow', 'avoid'],
-    search: ['food', 'cache'],
-    engage: ['melee', 'ranged', 'spell'],
-  }
+  const [expanded, setExpanded] = useState(false)
   return (
     <div
       className="card"
       style={{
+        position: 'relative',
         display: 'flex',
         justifyContent: 'center',
         flexDirection: 'column',
@@ -340,56 +338,59 @@ function Card({
       }}
     >
       {!selected ? (
-        Object.keys(optionTree).map((option) => (
-          <button
-            key={option}
-            className="btn btn-card"
-            onClick={() =>
-              planAction({
-                index,
-                action: { type: option, modifier: optionTree[option][0] },
-              })
-            }
-          >
-            {option}
-          </button>
-        ))
-      ) : !optionTree[selected.type] ? (
-        <>
-          <div>wut {selected.type}</div>
-        </>
+        <button
+          className="btn btn--card"
+          onClick={() => setExpanded((e) => !e)}
+        >
+          Select...
+        </button>
       ) : (
         <>
-          {optionTree[selected.type].map((mod) => (
-            <button
-              key={mod}
-              className={
-                'btn btn-card ' +
-                (selected.modifier === mod ? ' btn-card--selected' : '')
-              }
-              disabled={selected.modifier === mod}
-              onClick={() =>
-                planAction({
-                  index,
-                  action: { type: selected.type, modifier: mod },
-                })
-              }
-            >
-              {mod}
-            </button>
-          ))}
+          <div
+            style={{
+              flex: 3,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              textAlign: 'center',
+            }}
+          >
+            Selected: <div>{selected.type}</div>
+          </div>
           <button
-            className="btn btn-card"
-            onClick={() =>
+            className="btn btn--card"
+            onClick={() => {
               planAction({
                 index,
                 action: null,
               })
-            }
+              setExpanded((e) => !e)
+            }}
           >
-            other
+            Select...
           </button>
         </>
+      )}
+
+      {expanded && (
+        <div
+          onClick={() => setExpanded((e) => !e)}
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            backgroundColor: 'black',
+          }}
+        >
+          {Object.keys(optionTree).map((type) => (
+            <button
+              className="btn btn--dropdown"
+              onClick={() => planAction({ index, action: { type } })}
+            >
+              {type}
+            </button>
+          ))}
+        </div>
       )}
     </div>
   )
