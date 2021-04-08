@@ -4,12 +4,21 @@
   "private": true,
   "scripts": {
     "dev": "react-scripts start",
+    "devs": "nodemon --watch src --exec \"yarn devbuild && node server/server.js\"",
+    "devbuild": "esbuild --bundle src/server.ts --outdir=server --platform=node --target=node12 --external:socket.io --external:socket.io",
     "start": "react-scripts start",
     "server": "node server/server.js",
     "build": "react-scripts build && npm run esbuild",
     "esbuild": "NODE_ENV=production esbuild --bundle src/server.ts --outdir=server --platform=node --target=node12 --minify --sourcemap --external:socket.io --define:process.env.NODE_ENV='\"production\"'",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "server/*",
+      "docs/*"
+    ],
+    "delay": 2500
   },
   "eslintConfig": {
     "extends": [

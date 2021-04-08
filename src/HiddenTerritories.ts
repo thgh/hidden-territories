@@ -83,6 +83,10 @@ export const HiddenTerritories: Game = {
       moves: {
         initPlayer,
         planAction,
+        confirmMuster,
+        confirmDice,
+        allocateDie,
+        confirmAllocation,
         waitForAll,
       },
       turn: {
@@ -297,10 +301,10 @@ export const optionTree: { [key: string]: string[] } = {
   search: ['food', 'cache'],
   engage: ['melee', 'ranged', 'spell'],
   attack: [],
-  follow: [],
-  stealth: [],
-  parlay: [],
-  rest: [],
+  // follow: [],
+  // stealth: [],
+  // parlay: [],
+  // rest: [],
 }
 
 // @ts-ignore
@@ -327,6 +331,7 @@ export interface Moves {
   // Plan
   planAction: PlanActionCard
   initPlayer: (options: InitPlayerOptions) => void
+  confirmMuster: () => void
 
   // Execute
   travel: (cell: Cell) => void
@@ -357,10 +362,13 @@ export interface Quest {
   id: string
 }
 
-export interface Cell {
+export interface Cell extends Position {
+  terrain?: number
+}
+
+export interface Position {
   x: number
   y: number
-  terrain?: number
 }
 
 export interface Player extends Cell {
@@ -374,7 +382,18 @@ export interface Player extends Cell {
   health: number
   gold: number
   xp: number
+
+  // Muster phase
   cards: (ActionCard | null)[]
+  musterConfirmed: boolean
+  diceConfirmed: boolean
+  allocationConfirmed: boolean
+
+  // Daytime phase
+  activeCard: number
+  actionConfirmed: boolean
+  moveTarget: Cell | null
+  moveCount: number
 }
 
 export interface Item {
@@ -405,6 +424,8 @@ export interface PlanActionCardProps {
 
 export interface InitPlayerOptions {}
 
+export type AllocateDie = (option: any) => void
+
 // Moves
 
 // Moves > Prepare
@@ -428,7 +449,7 @@ function loadQuest(G: GameState, ctx: Ctx, quest: Quest) {
   ctx.events?.endPhase?.()
 }
 
-// Moves > Plan
+// Moves > Muster (Plan)
 
 function initPlayer(G: GameState, ctx: Ctx, options: InitPlayerOptions) {
   if (!ctx.playerID) {
@@ -437,7 +458,9 @@ function initPlayer(G: GameState, ctx: Ctx, options: InitPlayerOptions) {
   if (G.players.find((p) => p.id === ctx.playerID)) {
     return console.warn('player already exists')
   }
-  G.players.push(createPlayer({ ...options, id: ctx.playerID }))
+  G.players = inert(
+    G.players.concat(createPlayer({ ...options, id: ctx.playerID }))
+  )
 }
 function planAction(G: GameState, ctx: Ctx, plan: PlanActionCardProps) {
   if (!ctx.playerID) {
@@ -448,6 +471,35 @@ function planAction(G: GameState, ctx: Ctx, plan: PlanActionCardProps) {
     return console.warn('player not found')
   }
   me.cards[plan.index] = plan.action
+}
+function confirmMuster(G: GameState, ctx: Ctx) {
+  player(G, ctx, (me) => {
+    if (me.musterConfirmed) {
+      return console.warn('muster already confirmed')
+    }
+    me.musterConfirmed = true
+  })
+}
+function confirmDice(G: GameState, ctx: Ctx) {
+  player(G, ctx, (me) => {
+    if (me.diceConfirmed) {
+      return console.warn('dice already confirmed')
+    }
+    me.diceConfirmed = true
+  })
+}
+function allocateDie(G: GameState, ctx: Ctx) {
+  player(G, ctx, (me) => {
+    console.error('todo')
+  })
+}
+function confirmAllocation(G: GameState, ctx: Ctx) {
+  player(G, ctx, (me) => {
+    if (me.allocationConfirmed) {
+      return console.warn('dice already confirmed')
+    }
+    me.allocationConfirmed = true
+  })
 }
 function waitForAll(G: GameState, ctx: Ctx) {
   if (!ctx.playerID) {
@@ -468,7 +520,7 @@ function waitForAll(G: GameState, ctx: Ctx) {
   }
 
   console.log('letswait', G.waiting.concat(ctx.playerID))
-  G.waiting = JSON.parse(JSON.stringify(G.waiting.concat(ctx.playerID)))
+  G.waiting = inert(G.waiting.concat(ctx.playerID))
 }
 
 // Moves > Execute
@@ -480,6 +532,18 @@ export function createPlayer(player: { id: string } & Partial<Player>) {
     inventory: [],
     backpack: [],
     cards: [null, null, null, null, null],
+
+    // Muster phase (plan)
+    musterConfirmed: false,
+    diceConfirmed: false,
+    allocationConfirmed: false,
+
+    // Daytime phase
+    activeCard: -1,
+    actionConfirmed: false,
+    moveTarget: null,
+    moveCount: 0,
+
     health: 12,
     gold: 0,
     xp: 0,
@@ -510,4 +574,22 @@ export function color() {
 }
 export function rand(min: number, max: number) {
   return Math.random() * (max - min) + min
+}
+
+function inert(obj: any) {
+  return JSON.parse(JSON.stringify(obj))
+}
+
+function player(G: GameState, ctx: Ctx, func: (p: Player) => void) {
+  if (!ctx.playerID) {
+    return console.warn('no player?')
+  }
+  const me = G.players.find((p) => p.id === ctx.playerID)
+  if (!me) {
+    return console.warn(
+      'player not found',
+      G.players.map((p) => p.musterConfirmed)
+    )
+  }
+  return func(me)
 }

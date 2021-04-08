@@ -1,19 +1,22 @@
-import { ReactNode, useEffect, useState } from 'react'
+import React, { ReactNode, useEffect, useMemo, useState } from 'react'
+import { Dice } from './components/Dice'
 import Hexagon from './Hexagon'
 import { HexGrid } from './HexGrid'
 import { HexGridUI } from './HexGridUI'
 import { HexToken } from './HexToken'
 import {
   ActionCard,
+  AllocateDie,
   createPersona,
   GameProps,
   optionTree,
   PlanActionCard,
+  rand,
 } from './HiddenTerritories'
 import Persona from './Persona'
 
 export function Board(props: GameProps) {
-  console.log('prop', props)
+  // console.log('Board', props)
 
   const { ctx } = props
 
@@ -66,7 +69,7 @@ function PreparePhase({ moves, G }: GameProps) {
       {[1, 2, 3].map((quest) => {
         const count = votes.filter((v) => v === quest).length
         return (
-          <p>
+          <p key={quest}>
             <button
               className="btn btn-primary"
               type="button"
@@ -95,29 +98,92 @@ function PreparePhase({ moves, G }: GameProps) {
 }
 
 function PlanPhase(props: GameProps) {
-  console.log('planph')
+  console.log('PlanPhase', props.playerID, props)
   const { G, moves, playerID } = props
   const me = G.players.find((p) => p.id === playerID)!
+
+  const random = useMemo(
+    () => [1, 1, 1, 1, 1].map(() => Math.floor(rand(1, 6))),
+    []
+  )
 
   if (!me) {
     return <InitPlayerModal {...props} />
   }
 
+  if (!me.musterConfirmed) {
+    return (
+      <Modal padding>
+        <h1>Muster phase</h1>
+        <h2>Lay out which actions you want to do during this turn.</h2>
+        <Cards
+          cards={me?.cards}
+          planAction={(k) => {
+            console.log('plnaction', k)
+            moves.planAction(k)
+          }}
+        />
+        <button
+          className="btn btn-primary"
+          onClick={() => moves.confirmMuster()}
+        >
+          Confirm
+        </button>
+        {G.waiting.join(', ')}
+      </Modal>
+    )
+  }
+
+  if (!me.diceConfirmed) {
+    return (
+      <Modal padding>
+        <h1>Rolling the dice...</h1>
+        <h2>You threw these dice:</h2>
+        <Dice items={random} />
+        <div style={{ marginBottom: 24 }}></div>
+        <button className="btn btn-primary" onClick={() => moves.confirmDice()}>
+          Confirm dice
+        </button>
+        {G.waiting.join(', ')}
+      </Modal>
+    )
+  }
+
+  if (!me.allocationConfirmed) {
+    return (
+      <Modal padding>
+        <h1>Allocate the dice...</h1>
+        <h2>Drag each die to an action card.</h2>
+        <Cards
+          cards={me?.cards}
+          onDrop={(k: any) => {
+            console.log('allocate', k)
+            moves.planAction(k)
+          }}
+        />
+        <div style={{ marginBottom: 24 }}></div>
+        <Dice items={random} draggable />
+        <div style={{ marginBottom: 24 }}></div>
+        <button
+          className="btn btn-primary"
+          onClick={() => moves.confirmAllocation()}
+        >
+          Confirm
+        </button>
+        {G.waiting.join(', ')}
+      </Modal>
+    )
+  }
+
   return (
     <Modal padding>
-      <h1>Muster phase</h1>
-      <h2>Lay out which actions you want to do during this turn.</h2>
-      <Cards
-        cards={me?.cards}
-        planAction={(k) => {
-          console.log('plnaction', k)
-          moves.planAction(k)
-        }}
-      />
-      <button className="btn btn-primary" onClick={moves.waitForAll}>
-        Confirm
-      </button>
-      {G.waiting.join(', ')}
+      <h1>Waiting for others...</h1>
+      <h2>Almost there!</h2>
+      {G.players.map((p) =>
+        [p.id, p.musterConfirmed, p.diceConfirmed, p.allocationConfirmed].join(
+          ' '
+        )
+      )}
     </Modal>
   )
 }
@@ -285,9 +351,11 @@ function Modal({
 function Cards({
   cards,
   planAction,
+  onDrop,
 }: {
   cards: (ActionCard | null)[]
-  planAction: PlanActionCard
+  planAction?: PlanActionCard
+  onDrop?: AllocateDie
 }) {
   return (
     <div
@@ -306,6 +374,7 @@ function Cards({
             selected={action}
             index={index}
             planAction={planAction}
+            onDrop={onDrop}
           />
         ))}
     </div>
@@ -318,9 +387,11 @@ function Card({
 }: {
   selected: ActionCard | null
   index: number
-  planAction: PlanActionCard
+  planAction?: PlanActionCard
+  onDrop?: AllocateDie
 }) {
   const [expanded, setExpanded] = useState(false)
+  const [dropping, setDropping] = useState(false)
   return (
     <div
       className="card"
@@ -334,8 +405,10 @@ function Card({
         width: 100,
         height: 150,
         borderRadius: 6,
-        backgroundColor: '#77777733',
+        backgroundColor: dropping ? '#ffffff44' : '#77777733',
       }}
+      onDragEnter={() => setDropping(true)}
+      onDragLeave={() => setDropping(false)}
     >
       {!selected ? (
         <button
@@ -384,6 +457,7 @@ function Card({
         >
           {Object.keys(optionTree).map((type) => (
             <button
+              key={type}
               className="btn btn--dropdown"
               onClick={() => planAction({ index, action: { type } })}
             >
