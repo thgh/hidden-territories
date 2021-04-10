@@ -43,7 +43,7 @@ export function Playground() {
   })
   return (
     <Component
-    debug
+      // debug
       // debug={false}
       matchID={matchID}
       playerID={playerID}

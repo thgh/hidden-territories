@@ -115,7 +115,7 @@ code {
   width: 100%;
   border-radius: 0;
 }
-.btn--card:hover {
+.btn--card button:hover {
   background: #ffffff33;
 }
 

@@ -83,7 +83,7 @@ export const HiddenTerritories: Game = {
       moves: {
         initPlayer,
         planAction,
-        confirmMuster,
+        confirmPlannedCards,
         confirmDice,
         allocateDie,
         confirmAllocation,
@@ -331,7 +331,7 @@ export interface Moves {
   // Plan
   planAction: PlanActionCard
   initPlayer: (options: InitPlayerOptions) => void
-  confirmMuster: () => void
+  confirmPlannedCards: () => void
 
   // Execute
   travel: (cell: Cell) => void
@@ -385,8 +385,9 @@ export interface Player extends Cell {
 
   // Muster phase
   cards: (ActionCard | null)[]
-  musterConfirmed: boolean
+  plannedCardsConfirmed: boolean
   diceConfirmed: boolean
+  allocations: { index: number; die: { side: number; index: number } }[]
   allocationConfirmed: boolean
 
   // Daytime phase
@@ -415,16 +416,28 @@ export interface ActionCard {
   modifier?: string
 }
 
+// planAction()
 export type PlanActionCard = (option: PlanActionCardProps) => void
-
 export interface PlanActionCardProps {
   action: ActionCard | null
   index: number
 }
 
+// createPlayer()
 export interface InitPlayerOptions {}
 
+// rollDice
+export interface RolledDie {
+  side: number
+  index: number
+}
+
+// allocate()
 export type AllocateDie = (option: any) => void
+export interface Allocation {
+  die: RolledDie
+  index: number
+}
 
 // Moves
 
@@ -472,12 +485,12 @@ function planAction(G: GameState, ctx: Ctx, plan: PlanActionCardProps) {
   }
   me.cards[plan.index] = plan.action
 }
-function confirmMuster(G: GameState, ctx: Ctx) {
+function confirmPlannedCards(G: GameState, ctx: Ctx) {
   player(G, ctx, (me) => {
-    if (me.musterConfirmed) {
+    if (me.plannedCardsConfirmed) {
       return console.warn('muster already confirmed')
     }
-    me.musterConfirmed = true
+    me.plannedCardsConfirmed = true
   })
 }
 function confirmDice(G: GameState, ctx: Ctx) {
@@ -488,9 +501,11 @@ function confirmDice(G: GameState, ctx: Ctx) {
     me.diceConfirmed = true
   })
 }
-function allocateDie(G: GameState, ctx: Ctx) {
+function allocateDie(G: GameState, ctx: Ctx, allocation: Allocation) {
   player(G, ctx, (me) => {
-    console.error('todo')
+    if (!me.allocations) me.allocations = []
+    if (allocation.index > -1) me.allocations.unshift(allocation)
+    me.allocations = me.allocations.filter(uniqFunc((a) => a.die.index))
   })
 }
 function confirmAllocation(G: GameState, ctx: Ctx) {
@@ -531,11 +546,13 @@ export function createPlayer(player: { id: string } & Partial<Player>) {
   return {
     inventory: [],
     backpack: [],
-    cards: [null, null, null, null, null],
 
     // Muster phase (plan)
-    musterConfirmed: false,
+    cards: [null, null, null, null, null],
+    plannedCardsConfirmed: false,
+    dice: [],
     diceConfirmed: false,
+    allocations: [],
     allocationConfirmed: false,
 
     // Daytime phase
@@ -575,6 +592,11 @@ export function color() {
 export function rand(min: number, max: number) {
   return Math.random() * (max - min) + min
 }
+export function roll(count: number) {
+  return Array(count)
+    .fill(1)
+    .map((_, index) => ({ index, side: Math.floor(rand(1, 6)) }))
+}
 
 function inert(obj: any) {
   return JSON.parse(JSON.stringify(obj))
@@ -588,8 +610,22 @@ function player(G: GameState, ctx: Ctx, func: (p: Player) => void) {
   if (!me) {
     return console.warn(
       'player not found',
-      G.players.map((p) => p.musterConfirmed)
+      G.players.map((p) => p.plannedCardsConfirmed)
     )
   }
   return func(me)
+}
+
+// Usage:
+// items.filter(uniqBy('id'))
+export function uniqBy<T>(prop: keyof T) {
+  return (v: T, i: number, a: T[]) =>
+    a.findIndex((v2: T) => v[prop] === v2[prop]) === i
+}
+
+// Usage:
+// items.filter(uniqFunc(a => a.sub.prop))
+export function uniqFunc<T>(func: (t: T) => any) {
+  return (v: T, i: number, a: T[]) =>
+    a.findIndex((v2: T) => func(v) === func(v2)) === i
 }

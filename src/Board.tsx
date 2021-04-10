@@ -1,18 +1,13 @@
-import React, { ReactNode, useEffect, useMemo, useState } from 'react'
+import { ReactNode, useEffect, useMemo, useState } from 'react'
+import { Avatar } from './components/Avatar'
+import { PlanCards } from './components/Card'
 import { Dice } from './components/Dice'
+import { DiceAllocator } from './components/DiceAllocator'
 import Hexagon from './Hexagon'
 import { HexGrid } from './HexGrid'
 import { HexGridUI } from './HexGridUI'
 import { HexToken } from './HexToken'
-import {
-  ActionCard,
-  AllocateDie,
-  createPersona,
-  GameProps,
-  optionTree,
-  PlanActionCard,
-  rand,
-} from './HiddenTerritories'
+import { ActionCard, createPersona, GameProps, roll } from './HiddenTerritories'
 import Persona from './Persona'
 
 export function Board(props: GameProps) {
@@ -102,21 +97,18 @@ function PlanPhase(props: GameProps) {
   const { G, moves, playerID } = props
   const me = G.players.find((p) => p.id === playerID)!
 
-  const random = useMemo(
-    () => [1, 1, 1, 1, 1].map(() => Math.floor(rand(1, 6))),
-    []
-  )
+  const random = useMemo(() => roll(5), [])
 
   if (!me) {
     return <InitPlayerModal {...props} />
   }
 
-  if (!me.musterConfirmed) {
+  if (!me.plannedCardsConfirmed) {
     return (
       <Modal padding>
         <h1>Muster phase</h1>
         <h2>Lay out which actions you want to do during this turn.</h2>
-        <Cards
+        <PlanCards
           cards={me?.cards}
           planAction={(k) => {
             console.log('plnaction', k)
@@ -125,7 +117,7 @@ function PlanPhase(props: GameProps) {
         />
         <button
           className="btn btn-primary"
-          onClick={() => moves.confirmMuster()}
+          onClick={() => moves.confirmPlannedCards()}
         >
           Confirm
         </button>
@@ -154,15 +146,18 @@ function PlanPhase(props: GameProps) {
       <Modal padding>
         <h1>Allocate the dice...</h1>
         <h2>Drag each die to an action card.</h2>
-        <Cards
-          cards={me?.cards}
-          onDrop={(k: any) => {
-            console.log('allocate', k)
-            moves.planAction(k)
+        <DiceAllocator
+          cards={me?.cards.filter((c) => c?.type) as ActionCard[]}
+          temp_random={random}
+          allocations={me.allocations}
+          allocate={(data: {
+            index: number
+            die: { index: number; side: number }
+          }) => {
+            console.log('allocate', data)
+            moves.allocateDie(data)
           }}
         />
-        <div style={{ marginBottom: 24 }}></div>
-        <Dice items={random} draggable />
         <div style={{ marginBottom: 24 }}></div>
         <button
           className="btn btn-primary"
@@ -179,11 +174,37 @@ function PlanPhase(props: GameProps) {
     <Modal padding>
       <h1>Waiting for others...</h1>
       <h2>Almost there!</h2>
-      {G.players.map((p) =>
-        [p.id, p.musterConfirmed, p.diceConfirmed, p.allocationConfirmed].join(
-          ' '
-        )
-      )}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          marginLeft: -20,
+        }}
+      >
+        {G.players.map((p) => (
+          <div>
+            <Avatar name={p.id + ''} size={120} margin={20} />
+            <div style={{ textAlign: 'center' }}>
+              {!p.plannedCardsConfirmed
+                ? 'Planning action cards'
+                : !p.diceConfirmed
+                ? 'Rolling dice'
+                : !p.allocationConfirmed
+                ? 'Allocating dice'
+                : 'Waiting...'}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ marginBottom: 24 }}></div>
+      <button
+        className="btn btn-primary"
+        onClick={() => moves.confirmAllocation()}
+      >
+        Abort muster phase
+      </button>
     </Modal>
   )
 }
@@ -348,124 +369,140 @@ function Modal({
   )
 }
 
-function Cards({
-  cards,
-  planAction,
-  onDrop,
-}: {
-  cards: (ActionCard | null)[]
-  planAction?: PlanActionCard
-  onDrop?: AllocateDie
-}) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        margin: '1em 0',
-        justifyContent: 'space-between',
-      }}
-    >
-      {cards
-        .concat(null, null, null, null, null)
-        .slice(0, 5)
-        .map((action, index) => (
-          <Card
-            key={index}
-            selected={action}
-            index={index}
-            planAction={planAction}
-            onDrop={onDrop}
-          />
-        ))}
-    </div>
-  )
-}
-function Card({
-  selected,
-  index,
-  planAction,
-}: {
-  selected: ActionCard | null
-  index: number
-  planAction?: PlanActionCard
-  onDrop?: AllocateDie
-}) {
-  const [expanded, setExpanded] = useState(false)
-  const [dropping, setDropping] = useState(false)
-  return (
-    <div
-      className="card"
-      style={{
-        position: 'relative',
-        display: 'flex',
-        justifyContent: 'center',
-        flexDirection: 'column',
-        flex: '0 0 auto',
-        marginRight: 10,
-        width: 100,
-        height: 150,
-        borderRadius: 6,
-        backgroundColor: dropping ? '#ffffff44' : '#77777733',
-      }}
-      onDragEnter={() => setDropping(true)}
-      onDragLeave={() => setDropping(false)}
-    >
-      {!selected ? (
-        <button
-          className="btn btn--card"
-          onClick={() => setExpanded((e) => !e)}
-        >
-          Select...
-        </button>
-      ) : (
-        <>
-          <div
-            style={{
-              flex: 3,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              textAlign: 'center',
-            }}
-          >
-            Selected: <div>{selected.type}</div>
-          </div>
-          <button
-            className="btn btn--card"
-            onClick={() => {
-              planAction({
-                index,
-                action: null,
-              })
-              setExpanded((e) => !e)
-            }}
-          >
-            Select...
-          </button>
-        </>
-      )}
+// function Cards({
+//   cards,
+//   planAction,
+//   onDrop,
+// }: {
+//   cards: (ActionCard | null)[]
+//   planAction?: PlanActionCard
+//   onDrop?: AllocateDie
+// }) {
+//   return (
+//     <div
+//       style={{
+//         display: 'flex',
+//         margin: '1em 0',
+//         justifyContent: 'space-between',
+//       }}
+//     >
+//       {cards.map((action, index) => (
+//         <Card
+//           key={index}
+//           selected={action}
+//           index={index}
+//           planAction={planAction}
+//           onDrop={onDrop}
+//         />
+//       ))}
+//     </div>
+//   )
+// }
+// function Card({
+//   selected,
+//   index,
+//   planAction,
+//   onDrop,
+// }: {
+//   selected: ActionCard | null
+//   index: number
+//   planAction?: PlanActionCard
+//   onDrop?: AllocateDie
+// }) {
+//   const [expanded, setExpanded] = useState(false)
+//   const [dropping, setDropping] = useState(false)
+//   return (
+//     <div
+//       className="card"
+//       style={{
+//         position: 'relative',
+//         display: 'flex',
+//         justifyContent: 'center',
+//         flexDirection: 'column',
+//         flex: '0 0 auto',
+//         marginRight: 10,
+//         width: 100,
+//         height: 150,
+//         borderRadius: 6,
+//         backgroundColor: dropping ? '#ffffff44' : '#77777733',
+//       }}
+//       onDragOver={(e) => {
+//         e.preventDefault()
+//         setDropping(true)
+//       }}
+//       onDragEnter={() => setDropping(true)}
+//       onDragLeave={() => setDropping(false)}
+//       onDrop={(evt: any) => {
+//         console.log('d', evt.dataTransfer.getData('text'))
+//         var data = evt.dataTransfer.getData('text')
+//         if (data) {
+//           try {
+//             onDrop?.({ index, die: JSON.parse(data) })
+//           } catch (e) {
+//             console.warn('failed to drop', data, e)
+//           }
+//         }
+//         setDropping(false)
+//       }}
+//     >
+//       {selected && (
+//         <div
+//           style={{
+//             flex: 3,
+//             display: 'flex',
+//             flexDirection: 'column',
+//             justifyContent: 'center',
+//             textAlign: 'center',
+//           }}
+//         >
+//           Selected: <div>{selected.type}</div>
+//         </div>
+//       )}
 
-      {expanded && (
-        <div
-          onClick={() => setExpanded((e) => !e)}
-          style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            backgroundColor: 'black',
-          }}
-        >
-          {Object.keys(optionTree).map((type) => (
-            <button
-              key={type}
-              className="btn btn--dropdown"
-              onClick={() => planAction({ index, action: { type } })}
-            >
-              {type}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
+//       {planAction &&
+//         (!selected ? (
+//           <button
+//             className="btn btn--card"
+//             onClick={() => setExpanded((e) => !e)}
+//           >
+//             Select...
+//           </button>
+//         ) : (
+//           <button
+//             className="btn btn--card"
+//             onClick={() => {
+//               planAction({
+//                 index,
+//                 action: null,
+//               })
+//               setExpanded((e) => !e)
+//             }}
+//           >
+//             Select...
+//           </button>
+//         ))}
+
+//       {expanded && planAction && (
+//         <div
+//           onClick={() => setExpanded((e) => !e)}
+//           style={{
+//             position: 'absolute',
+//             top: '100%',
+//             left: 0,
+//             backgroundColor: 'black',
+//           }}
+//         >
+//           {Object.keys(optionTree).map((type) => (
+//             <button
+//               key={type}
+//               className="btn btn--dropdown"
+//               onClick={() => planAction({ index, action: { type } })}
+//             >
+//               {type}
+//             </button>
+//           ))}
+//         </div>
+//       )}
+//     </div>
+//   )
+// }
