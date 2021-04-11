@@ -89,18 +89,22 @@ code {
   -webkit-appearance: button;
   color: rgba(255, 255, 255, 100%);
   cursor: pointer;
+  user-select: none;
 }
 .btn + .btn {
   margin-left: 1em;
 }
 .btn-primary {
   background-color: rgb(24, 64, 156);
-
   border-color: rgb(22, 47, 82);
 }
 .btn-subtle {
   background-color: #ffffff08;
   border-color: #00000044;
+}
+
+.btn:disabled {
+  /* background-color: rgb(24, 64, 156); */
 }
 
 .btn--card {

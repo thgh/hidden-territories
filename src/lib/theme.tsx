@@ -1,9 +1,10 @@
-import { createContext, ReactNode, useMemo } from 'react'
+import { useContext, createContext, ReactNode, useMemo } from 'react'
 
 export interface TokenSets {
   card: ComponentTokens
   paragraph: ComponentTokens
   body: ComponentTokens
+  button: ComponentTokens
   [key: string]: ComponentTokens
 }
 
@@ -12,12 +13,19 @@ export interface ComponentTokens {
   padding?: string
   color?: string
   backgroundColor?: string
+  borderColor?: string
   borderRadius?: number
   [key: string]: string | number | undefined
 }
 
 export const neutral = {
   base: { borderRadius: 6, color: 'white', backgroundColor: '#222f42' },
+  button: {
+    borderRadius: 6,
+    color: 'white',
+    backgroundColor: '#ffffff08',
+    borderColor: '#00000044',
+  },
   card: { borderRadius: 6, color: 'white', backgroundColor: '#77777733' },
 }
 
@@ -26,10 +34,26 @@ export const selected = inherit(neutral, {
 })
 
 export const positive = inherit(neutral, {
-  card: { backgroundColor: '#ffffff44' },
+  card: { color: '#0f0', backgroundColor: '#006600' },
+})
+
+export const disabled = inherit(neutral, {
+  card: { color: '#0f0', backgroundColor: '#006600' },
+})
+
+export const action = inherit(neutral, {
+  button: {
+    color: '#fff',
+    backgroundColor: 'rgb(24, 64, 156)',
+    borderColor: 'rgb(22, 47, 82)',
+  },
 })
 
 export const Theme = createContext(neutral)
+
+export function useTheme() {
+  return useContext(Theme)
+}
 
 export function ThemeProvider({
   override,
@@ -42,14 +66,38 @@ export function ThemeProvider({
   return <Theme.Provider value={merged}>{children}</Theme.Provider>
 }
 
-export function CardTheme({
-  selected: s,
+// Theme override helpers
+
+export function ButtonTheme({
+  action: act,
+  disabled: dis,
   children,
 }: {
-  selected: boolean
+  action?: boolean
+  disabled?: boolean
   children: ReactNode
 }) {
-  return <ThemeProvider override={s ? selected : {}}>{children}</ThemeProvider>
+  return (
+    <ThemeProvider override={dis ? disabled : act ? action : {}}>
+      {children}
+    </ThemeProvider>
+  )
+}
+
+export function CardTheme({
+  selected: sel,
+  positive: pos,
+  children,
+}: {
+  selected?: boolean
+  positive?: boolean
+  children: ReactNode
+}) {
+  return (
+    <ThemeProvider override={sel ? selected : pos ? positive : {}}>
+      {children}
+    </ThemeProvider>
+  )
 }
 
 function inherit(base: Partial<TokenSets>, override: Partial<TokenSets>) {

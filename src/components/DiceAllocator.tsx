@@ -83,10 +83,7 @@ function DiceAllocatorCard({
         setDropping(false)
       }}
     >
-      {dropping ? 2 : 3}
-      <br />
-      {card.type}
-      <br />
+      <div style={{ textAlign: 'center' }}>{card.type}</div>
       {allocations ? (
         <div
           style={{

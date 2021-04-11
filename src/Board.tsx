@@ -1,8 +1,12 @@
-import { ReactNode, useEffect, useMemo, useState } from 'react'
-import { Avatar } from './components/Avatar'
+import React, { ReactNode, useEffect, useMemo, useState } from 'react'
+
+import { PlayerMusterStatus } from './components/Avatar'
+import Button from './components/Button'
 import { PlanCards } from './components/Card'
 import { Dice } from './components/Dice'
 import { DiceAllocator } from './components/DiceAllocator'
+import { ButtonTheme, CardTheme } from './lib/theme'
+
 import Hexagon from './Hexagon'
 import { HexGrid } from './HexGrid'
 import { HexGridUI } from './HexGridUI'
@@ -50,7 +54,7 @@ export function Board(props: GameProps) {
 
       {ctx.phase === 'prepare' && <PreparePhase {...props} />}
       {ctx.phase === 'plan' && <PlanPhase {...props} />}
-      {ctx.phase === 'play' && props.isActive && <PlayPhase {...props} />}
+      {/* {ctx.phase === 'play' && props.isActive && <PlayPhase {...props} />} */}
     </div>
   )
 }
@@ -65,24 +69,20 @@ function PreparePhase({ moves, G }: GameProps) {
         const count = votes.filter((v) => v === quest).length
         return (
           <p key={quest}>
-            <button
-              className="btn btn-primary"
-              type="button"
-              onClick={() => moves.toggleVote(quest)}
-            >
-              Quest {quest}
-            </button>
+            <ButtonTheme action>
+              <Button onClick={() => moves.toggleVote(quest)}>
+                Quest {quest}
+              </Button>
+            </ButtonTheme>
             {count ? (
               <span style={{ marginLeft: 24 }}>
                 {count} votes
-                <button
-                  className="btn btn-subtle"
-                  type="button"
+                <Button
                   style={{ marginLeft: 24 }}
                   onClick={() => moves.loadQuest(quest)}
                 >
                   Confirm
-                </button>
+                </Button>
               </span>
             ) : null}
           </p>
@@ -109,18 +109,20 @@ function PlanPhase(props: GameProps) {
         <h1>Muster phase</h1>
         <h2>Lay out which actions you want to do during this turn.</h2>
         <PlanCards
-          cards={me?.cards}
+          cards={me.cards}
           planAction={(k) => {
             console.log('plnaction', k)
             moves.planAction(k)
           }}
         />
-        <button
-          className="btn btn-primary"
-          onClick={() => moves.confirmPlannedCards()}
-        >
-          Confirm
-        </button>
+        <ButtonTheme action disabled={!me.cards.find(Boolean)}>
+          <Button
+            onClick={() => moves.confirmPlannedCards()}
+            disabled={!me.cards.find(Boolean)}
+          >
+            Confirm
+          </Button>
+        </ButtonTheme>
         {G.waiting.join(', ')}
       </Modal>
     )
@@ -133,9 +135,9 @@ function PlanPhase(props: GameProps) {
         <h2>You threw these dice:</h2>
         <Dice items={random} />
         <div style={{ marginBottom: 24 }}></div>
-        <button className="btn btn-primary" onClick={() => moves.confirmDice()}>
-          Confirm dice
-        </button>
+        <ButtonTheme action>
+          <Button onClick={() => moves.confirmDice()}>Confirm dice</Button>
+        </ButtonTheme>
         {G.waiting.join(', ')}
       </Modal>
     )
@@ -147,7 +149,7 @@ function PlanPhase(props: GameProps) {
         <h1>Allocate the dice...</h1>
         <h2>Drag each die to an action card.</h2>
         <DiceAllocator
-          cards={me?.cards.filter((c) => c?.type) as ActionCard[]}
+          cards={me.cards.filter((c) => c?.type) as ActionCard[]}
           temp_random={random}
           allocations={me.allocations}
           allocate={(data: {
@@ -159,12 +161,9 @@ function PlanPhase(props: GameProps) {
           }}
         />
         <div style={{ marginBottom: 24 }}></div>
-        <button
-          className="btn btn-primary"
-          onClick={() => moves.confirmAllocation()}
-        >
-          Confirm
-        </button>
+        <ButtonTheme action>
+          <Button onClick={() => moves.confirmAllocation()}>Confirm</Button>
+        </ButtonTheme>
         {G.waiting.join(', ')}
       </Modal>
     )
@@ -183,28 +182,18 @@ function PlanPhase(props: GameProps) {
         }}
       >
         {G.players.map((p) => (
-          <div>
-            <Avatar name={p.id + ''} size={120} margin={20} />
-            <div style={{ textAlign: 'center' }}>
-              {!p.plannedCardsConfirmed
-                ? 'Planning action cards'
-                : !p.diceConfirmed
-                ? 'Rolling dice'
-                : !p.allocationConfirmed
-                ? 'Allocating dice'
-                : 'Waiting...'}
-            </div>
-          </div>
+          <CardTheme positive={p.allocationConfirmed}>
+            <PlayerMusterStatus player={p} />
+          </CardTheme>
         ))}
       </div>
 
       <div style={{ marginBottom: 24 }}></div>
-      <button
-        className="btn btn-primary"
-        onClick={() => moves.confirmAllocation()}
-      >
-        Abort muster phase
-      </button>
+      <ButtonTheme action>
+        <Button onClick={() => moves.endMusterPhase()}>
+          Abort muster phase
+        </Button>
+      </ButtonTheme>
     </Modal>
   )
 }
@@ -219,121 +208,116 @@ function InitPlayerModal({ moves }: GameProps) {
         <Persona persona={persona} />
       </div>
       <div style={{ marginBottom: 24 }}>
-        <button
-          className="btn btn-subtle"
-          onClick={() => setPersona(createPersona())}
-        >
-          Randomize
-        </button>
+        <Button onClick={() => setPersona(createPersona())}>Randomize</Button>
       </div>
-      <button className="btn btn-primary" onClick={() => moves.initPlayer({})}>
-        Confirm
-      </button>
-      <button className="btn btn-subtle">Continue as spectator</button>
+      <ButtonTheme action>
+        <Button onClick={() => moves.initPlayer({})}>Confirm</Button>
+      </ButtonTheme>
+      <Button>Continue as spectator</Button>
     </Modal>
   )
 }
 
-function PlayPhase(props: GameProps) {
-  const stage = props.ctx.activePlayers?.[props.playerID]
+// function PlayPhase(props: GameProps) {
+//   const stage = props.ctx.activePlayers?.[props.playerID]
 
-  const endStage = () => {
-    props.events.endStage?.()
-    // Workaround to trigger the endIf hook
-    setTimeout(props.moves.check, 500)
-  }
+//   const endStage = () => {
+//     props.events.endStage?.()
+//     // Workaround to trigger the endIf hook
+//     setTimeout(props.moves.check, 500)
+//   }
 
-  useEffect(() => {
-    setTimeout(props.moves.check, 500)
-  }, [props.moves.check])
+//   useEffect(() => {
+//     setTimeout(props.moves.check, 500)
+//   }, [props.moves.check])
 
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        zIndex: 20,
-        width: '100%',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          maxWidth: 600,
-          margin: 'auto',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            backgroundColor: '#333',
-            borderBottomLeftRadius: 20,
-            borderBottomRightRadius: 20,
-            overflow: 'hidden',
-            fontSize: 14,
-          }}
-        >
-          {stage === 'travel' ? (
-            <div>
-              <span style={{ padding: '12px 1.5em' }}>
-                Click on the hexagons to travel around
-                {/* {props.ctx.numMoves
-                  ? 'You did ' + props.ctx.numMoves + ' moves'
-                  : 'Click on the hexagons to travel around'} */}
-              </span>
-              <ActionButton type="button" onClick={endStage}>
-                end turn
-              </ActionButton>
-            </div>
-          ) : stage === 'wait' ? (
-            <div style={{ padding: '12px 1.5em' }}>
-              You are waiting for the other players
-            </div>
-          ) : !stage ? (
-            <div>
-              <span
-                style={{
-                  fontSize: 12,
-                  fontWeight: 'bold',
-                  opacity: 0.6,
-                  padding: '12px 1.5em',
-                }}
-              >
-                Choose your action
-              </span>
-              <ActionButton
-                type="button"
-                onClick={() => props.events.setStage?.('attack')}
-              >
-                attack
-              </ActionButton>
-              <ActionButton
-                type="button"
-                onClick={() => props.events.setStage?.('travel')}
-              >
-                travel
-              </ActionButton>
-            </div>
-          ) : (
-            <div>
-              <span style={{ padding: '12px 1.5em' }}>
-                Unknown stage: {stage}
-              </span>
-              <ActionButton type="button" onClick={endStage}>
-                end turn
-              </ActionButton>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
+//   return (
+//     <div
+//       style={{
+//         position: 'absolute',
+//         zIndex: 20,
+//         width: '100%',
+//       }}
+//     >
+//       <div
+//         style={{
+//           display: 'flex',
+//           justifyContent: 'center',
+//           maxWidth: 600,
+//           margin: 'auto',
+//         }}
+//       >
+//         <div
+//           style={{
+//             display: 'flex',
+//             alignItems: 'center',
+//             backgroundColor: '#333',
+//             borderBottomLeftRadius: 20,
+//             borderBottomRightRadius: 20,
+//             overflow: 'hidden',
+//             fontSize: 14,
+//           }}
+//         >
+//           {stage === 'travel' ? (
+//             <div>
+//               <span style={{ padding: '12px 1.5em' }}>
+//                 Click on the hexagons to travel around
+//                 {/* {props.ctx.numMoves
+//                   ? 'You did ' + props.ctx.numMoves + ' moves'
+//                   : 'Click on the hexagons to travel around'} */}
+//               </span>
+//               <ActionButton type="button" onClick={endStage}>
+//                 end turn
+//               </ActionButton>
+//             </div>
+//           ) : stage === 'wait' ? (
+//             <div style={{ padding: '12px 1.5em' }}>
+//               You are waiting for the other players
+//             </div>
+//           ) : !stage ? (
+//             <div>
+//               <span
+//                 style={{
+//                   fontSize: 12,
+//                   fontWeight: 'bold',
+//                   opacity: 0.6,
+//                   padding: '12px 1.5em',
+//                 }}
+//               >
+//                 Choose your action
+//               </span>
+//               <ActionButton
+//                 type="button"
+//                 onClick={() => props.events.setStage?.('attack')}
+//               >
+//                 attack
+//               </ActionButton>
+//               <ActionButton
+//                 type="button"
+//                 onClick={() => props.events.setStage?.('travel')}
+//               >
+//                 travel
+//               </ActionButton>
+//             </div>
+//           ) : (
+//             <div>
+//               <span style={{ padding: '12px 1.5em' }}>
+//                 Unknown stage: {stage}
+//               </span>
+//               <ActionButton type="button" onClick={endStage}>
+//                 end turn
+//               </ActionButton>
+//             </div>
+//           )}
+//         </div>
+//       </div>
+//     </div>
+//   )
+// }
 
-function ActionButton(props: any) {
-  return <button className="btn-action" {...props} />
-}
+// function ActionButton(props: any) {
+//   return <Button className="btn-action" {...props} />
+// }
 
 function Modal({
   children,
@@ -461,14 +445,14 @@ function Modal({
 
 //       {planAction &&
 //         (!selected ? (
-//           <button
+//           <Button
 //             className="btn btn--card"
 //             onClick={() => setExpanded((e) => !e)}
 //           >
 //             Select...
-//           </button>
+//           </Button>
 //         ) : (
-//           <button
+//           <Button
 //             className="btn btn--card"
 //             onClick={() => {
 //               planAction({
@@ -479,7 +463,7 @@ function Modal({
 //             }}
 //           >
 //             Select...
-//           </button>
+//           </Button>
 //         ))}
 
 //       {expanded && planAction && (
@@ -493,13 +477,13 @@ function Modal({
 //           }}
 //         >
 //           {Object.keys(optionTree).map((type) => (
-//             <button
+//             <Button
 //               key={type}
 //               className="btn btn--dropdown"
 //               onClick={() => planAction({ index, action: { type } })}
 //             >
 //               {type}
-//             </button>
+//             </Button>
 //           ))}
 //         </div>
 //       )}

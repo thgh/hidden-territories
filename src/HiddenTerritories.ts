@@ -88,15 +88,16 @@ export const HiddenTerritories: Game = {
         allocateDie,
         confirmAllocation,
         waitForAll,
+        endMusterPhase,
       },
       turn: {
         activePlayers: ActivePlayers.ALL,
       },
-      next: 'execute',
+      next: 'daytime',
     },
 
     // Card
-    execute: {
+    daytime: {
       moves: {
         executeCard() {},
         done() {},
@@ -127,11 +128,11 @@ export const HiddenTerritories: Game = {
               confirm: (ctx) => {
                 if (ctx.lastPlayer) {
                   // start executing the actions
-                  // execute first card of ctx.activePlayer (move, )
-                  // execute second card
+                  // daytime first card of ctx.activePlayer (move, )
+                  // daytime second card
                   // ...
-                  // execute first card of next player based on initiative order
-                  // execute second card
+                  // daytime first card of next player based on initiative order
+                  // daytime second card
                   // ...
                 } else {
                   return { next: 'planning_done' }
@@ -333,7 +334,7 @@ export interface Moves {
   initPlayer: (options: InitPlayerOptions) => void
   confirmPlannedCards: () => void
 
-  // Execute
+  // Daytime
   travel: (cell: Cell) => void
   allocateDice: () => void
   powerUpDistance: () => void
@@ -535,10 +536,13 @@ function waitForAll(G: GameState, ctx: Ctx) {
   }
 
   console.log('letswait', G.waiting.concat(ctx.playerID))
-  G.waiting = inert(G.waiting.concat(ctx.playerID))
+  G.waiting = G.waiting.concat(ctx.playerID)
+}
+function endMusterPhase(G: GameState, ctx: Ctx) {
+  console.log('G.waiting', G.waiting)
 }
 
-// Moves > Execute
+// Moves > Daytime
 
 // Helpers
 

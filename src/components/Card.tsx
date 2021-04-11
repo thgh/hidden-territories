@@ -1,6 +1,6 @@
-import React, { HTMLAttributes, useContext, useState } from 'react'
+import { HTMLAttributes, useState } from 'react'
 import { ActionCard, PlanActionCard, optionTree } from '../HiddenTerritories'
-import { CardTheme, Theme } from '../lib/theme'
+import { CardTheme, useTheme } from '../lib/theme'
 
 export function PlanCards({
   cards,
@@ -42,7 +42,7 @@ export function Card(props: HTMLAttributes<HTMLDivElement>) {
         marginRight: 10,
         width: 100,
         height: 150,
-        ...useContext(Theme).card,
+        ...useTheme().card,
       }}
       {...props}
     />
