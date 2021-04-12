@@ -78,7 +78,8 @@ export const HiddenTerritories: Game = {
       next: 'plan',
     },
 
-    // Lay out cards in front of you
+    // Lay out action cards in front of you
+    // and allocate dice to action cards
     plan: {
       moves: {
         initPlayer,
@@ -540,6 +541,7 @@ function waitForAll(G: GameState, ctx: Ctx) {
 }
 function endMusterPhase(G: GameState, ctx: Ctx) {
   console.log('G.waiting', G.waiting)
+  ctx.events?.endPhase?.()
 }
 
 // Moves > Daytime

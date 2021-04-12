@@ -5,6 +5,7 @@ import {
   Allocation,
   RolledDie,
 } from '../HiddenTerritories'
+import { CardTheme } from '../lib/theme'
 import { Card } from './Card'
 import { Die } from './Dice'
 
@@ -63,43 +64,45 @@ function DiceAllocatorCard({
 }) {
   const [dropping, setDropping] = useState(false)
   return (
-    <Card
-      onDragOver={(e) => {
-        e.preventDefault()
-        setDropping(true)
-      }}
-      onDragEnter={() => setDropping(true)}
-      onDragLeave={() => setDropping(false)}
-      onDrop={(evt: any) => {
-        console.log('zzd', evt.dataTransfer.getData('text'))
-        var data = evt.dataTransfer.getData('text')
-        if (data) {
-          try {
-            onDrop?.({ index, die: JSON.parse(data) })
-          } catch (e) {
-            console.warn('failed to drop', data, e)
+    <CardTheme selected={!!allocations?.length} positive={dropping}>
+      <Card
+        onDragOver={(e) => {
+          e.preventDefault()
+          setDropping(true)
+        }}
+        onDragEnter={() => setDropping(true)}
+        onDragLeave={() => setDropping(false)}
+        onDrop={(evt: any) => {
+          console.log('zzd', evt.dataTransfer.getData('text'))
+          var data = evt.dataTransfer.getData('text')
+          if (data) {
+            try {
+              onDrop?.({ index, die: JSON.parse(data) })
+            } catch (e) {
+              console.warn('failed to drop', data, e)
+            }
           }
-        }
-        setDropping(false)
-      }}
-    >
-      <div style={{ textAlign: 'center' }}>{card.type}</div>
-      {allocations ? (
-        <div
-          style={{
-            position: 'absolute',
-            top: 10,
-            left: 'calc(100% - 10px)',
-            width: 'calc(100% + 20px)',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          {allocations.map(({ die }) => (
-            <Die {...die} size={18} margin={2} draggable />
-          ))}
-        </div>
-      ) : null}
-    </Card>
+          setDropping(false)
+        }}
+      >
+        <div style={{ textAlign: 'center' }}>{card.type}</div>
+        {allocations?.length ? (
+          <div
+            style={{
+              position: 'absolute',
+              top: 10,
+              left: 'calc(100% - 10px)',
+              width: 'calc(100% + 20px)',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            {allocations.map(({ die }) => (
+              <Die {...die} size={18} margin={2} draggable />
+            ))}
+          </div>
+        ) : null}
+      </Card>
+    </CardTheme>
   )
 }

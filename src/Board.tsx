@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useMemo, useState } from 'react'
+import React, { ReactNode, useMemo, useState } from 'react'
 
 import { PlayerMusterStatus } from './components/Avatar'
 import Button from './components/Button'
