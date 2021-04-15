@@ -2,7 +2,7 @@ import React, { ReactNode, useMemo, useState } from 'react'
 
 import { PlayerMusterStatus } from './components/Avatar'
 import Button from './components/Button'
-import { PlanCards } from './components/Card'
+import { Card, PlanCards } from './components/Card'
 import { Dice } from './components/Dice'
 import { DiceAllocator } from './components/DiceAllocator'
 import { ButtonTheme, CardTheme } from './lib/theme'
@@ -53,7 +53,8 @@ export function Board(props: GameProps) {
       </HexGrid>
 
       {ctx.phase === 'prepare' && <PreparePhase {...props} />}
-      {ctx.phase === 'plan' && <PlanPhase {...props} />}
+      {ctx.phase === 'muster' && <MusterPhase {...props} />}
+      {ctx.phase === 'daytime' && <DaytimePhase {...props} />}
       {/* {ctx.phase === 'play' && props.isActive && <PlayPhase {...props} />} */}
     </div>
   )
@@ -92,8 +93,8 @@ function PreparePhase({ moves, G }: GameProps) {
   )
 }
 
-function PlanPhase(props: GameProps) {
-  console.log('PlanPhase', props.playerID, props)
+function MusterPhase(props: GameProps) {
+  console.log('MusterPhase', props.playerID, props)
   const { G, moves, playerID } = props
   const me = G.players.find((p) => p.id === playerID)!
 
@@ -123,7 +124,6 @@ function PlanPhase(props: GameProps) {
             Confirm
           </Button>
         </ButtonTheme>
-        {G.waiting.join(', ')}
       </Modal>
     )
   }
@@ -138,7 +138,6 @@ function PlanPhase(props: GameProps) {
         <ButtonTheme action>
           <Button onClick={() => moves.confirmDice()}>Confirm dice</Button>
         </ButtonTheme>
-        {G.waiting.join(', ')}
       </Modal>
     )
   }
@@ -164,7 +163,6 @@ function PlanPhase(props: GameProps) {
         <ButtonTheme action>
           <Button onClick={() => moves.confirmAllocation()}>Confirm</Button>
         </ButtonTheme>
-        {G.waiting.join(', ')}
       </Modal>
     )
   }
@@ -198,6 +196,75 @@ function PlanPhase(props: GameProps) {
   )
 }
 
+function DaytimePhase({ moves, G, playerID }: GameProps) {
+  const me = G.players.find((p) => p.id === playerID)!
+  const card = me.cards[0]
+  if (!card) {
+    return (
+      <Modal padding>
+        <h1>No action cards left</h1>
+        <p>Waiting for next turn...</p>
+        <ButtonTheme action>
+          <Button onClick={() => moves.endDaytimePhase()}>Abort daytime</Button>
+        </ButtonTheme>
+      </Modal>
+    )
+  }
+
+  if (card.type === 'move') {
+    return (
+      <Modal padding overflow="auto">
+        <div style={{ float: 'left' }}>
+          <Card size={70}>
+            <div style={{ textAlign: 'center' }}>Move</div>
+          </Card>
+        </div>
+        <h1>Move</h1>
+        <h2>What's your target location?</h2>
+        <ButtonTheme action disabled={!me.cards.find(Boolean)}>
+          <Button onClick={() => moves.executeCard()}>Start moving...</Button>
+        </ButtonTheme>
+      </Modal>
+    )
+  }
+
+  if (card.type === 'search') {
+    return (
+      <Modal padding overflow="auto">
+        <div style={{ float: 'left' }}>
+          <Card size={70}>
+            <div style={{ textAlign: 'center' }}>{card.type}</div>
+          </Card>
+        </div>
+        <h1>Search</h1>
+        <h2>How about we open this chest?</h2>
+        <ButtonTheme action disabled={!me.cards.find(Boolean)}>
+          <Button onClick={() => moves.executeCard()}>
+            Search in hex {me.x},{me.y}
+          </Button>
+        </ButtonTheme>
+      </Modal>
+    )
+  }
+
+  return (
+    <Modal padding overflow="auto">
+      <div style={{ float: 'left' }}>
+        <Card size={70}>
+          <div style={{ textAlign: 'center' }}>{card.type}</div>
+        </Card>
+      </div>
+      <h1>Daytime phase TODO</h1>
+      <h2>Execute your action cards one by one.</h2>
+      <ButtonTheme action disabled={!me.cards.find(Boolean)}>
+        <Button onClick={() => moves.execute()}>Start {card.type}</Button>
+      </ButtonTheme>
+    </Modal>
+  )
+}
+
+function MoveAction(params: type) {}
+
 function InitPlayerModal({ moves }: GameProps) {
   const [persona, setPersona] = useState(() => createPersona())
   return (
@@ -211,7 +278,7 @@ function InitPlayerModal({ moves }: GameProps) {
         <Button onClick={() => setPersona(createPersona())}>Randomize</Button>
       </div>
       <ButtonTheme action>
-        <Button onClick={() => moves.initPlayer({})}>Confirm</Button>
+        <Button onClick={() => moves.initPlayer({ persona })}>Confirm</Button>
       </ButtonTheme>
       <Button>Continue as spectator</Button>
     </Modal>
@@ -321,10 +388,12 @@ function InitPlayerModal({ moves }: GameProps) {
 
 function Modal({
   children,
+  overflow,
   padding = false,
   row = false,
 }: {
   children: ReactNode
+  overflow?: 'auto'
   padding?: boolean
   row?: boolean
 }) {
@@ -336,6 +405,7 @@ function Modal({
           maxWidth: 600,
           margin: 'auto',
           padding: padding ? 24 : 0,
+          overflow: overflow,
           borderBottomLeftRadius: 20,
           borderBottomRightRadius: 20,
           // overflow: 'hidden',

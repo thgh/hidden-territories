@@ -29,7 +29,9 @@ export function PlanCards({
   )
 }
 
-export function Card(props: HTMLAttributes<HTMLDivElement>) {
+export function Card(
+  props: HTMLAttributes<HTMLDivElement> & { size?: number }
+) {
   return (
     <div
       className="card"
@@ -40,8 +42,8 @@ export function Card(props: HTMLAttributes<HTMLDivElement>) {
         flexDirection: 'column',
         flex: '0 0 auto',
         marginRight: 10,
-        width: 100,
-        height: 150,
+        width: props.size || 100,
+        height: props.size ? (props.size * 3) / 2 : 150,
         ...useTheme().card,
       }}
       {...props}

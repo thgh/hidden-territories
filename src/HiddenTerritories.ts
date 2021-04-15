@@ -75,12 +75,12 @@ export const HiddenTerritories: Game = {
       turn: {
         activePlayers: ActivePlayers.ALL,
       },
-      next: 'plan',
+      next: 'muster',
     },
 
     // Lay out action cards in front of you
     // and allocate dice to action cards
-    plan: {
+    muster: {
       moves: {
         initPlayer,
         planAction,
@@ -100,7 +100,7 @@ export const HiddenTerritories: Game = {
     // Card
     daytime: {
       moves: {
-        executeCard() {},
+        executeCard,
         done() {},
       },
       turn: {
@@ -426,7 +426,9 @@ export interface PlanActionCardProps {
 }
 
 // createPlayer()
-export interface InitPlayerOptions {}
+export interface InitPlayerOptions {
+  persona: PersonaConfig
+}
 
 // rollDice
 export interface RolledDie {
@@ -464,7 +466,7 @@ function loadQuest(G: GameState, ctx: Ctx, quest: Quest) {
   ctx.events?.endPhase?.()
 }
 
-// Moves > Muster (Plan)
+// Moves > Muster
 
 function initPlayer(G: GameState, ctx: Ctx, options: InitPlayerOptions) {
   if (!ctx.playerID) {
@@ -535,16 +537,26 @@ function waitForAll(G: GameState, ctx: Ctx) {
     ctx.events?.endPhase?.()
     return
   }
-
   console.log('letswait', G.waiting.concat(ctx.playerID))
   G.waiting = G.waiting.concat(ctx.playerID)
 }
 function endMusterPhase(G: GameState, ctx: Ctx) {
-  console.log('G.waiting', G.waiting)
+  // console.log('G.waiting', G.waiting)
   ctx.events?.endPhase?.()
 }
 
 // Moves > Daytime
+function executeCard(G: GameState, ctx: Ctx) {
+  // console.log('G.waiting', G.waiting)
+
+  player(G, ctx, (me) => {
+    const card = me.cards[0]
+    if (!card) {
+      return console.warn('no cards left to execute')
+    }
+    console.log('card', card)
+  })
+}
 
 // Helpers
 
@@ -553,7 +565,7 @@ export function createPlayer(player: { id: string } & Partial<Player>) {
     inventory: [],
     backpack: [],
 
-    // Muster phase (plan)
+    // Muster phase
     cards: [null, null, null, null, null],
     plannedCardsConfirmed: false,
     dice: [],
@@ -572,7 +584,7 @@ export function createPlayer(player: { id: string } & Partial<Player>) {
     xp: 0,
     x: 0,
     y: 0,
-    persona: createPersona(),
+    persona: player.persona || createPersona(),
     ...player,
   }
 }

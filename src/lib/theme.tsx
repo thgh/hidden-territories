@@ -68,6 +68,23 @@ export function ThemeProvider({
 
 // Theme override helpers
 
+// export function DynamicTheme({
+//   a,
+//   children,
+// }: {
+//   a: Function
+//   children: ReactNode
+// }) {
+//   const parent = useTheme()
+//   return <ThemeProvider override={a(parent)}>{children}</ThemeProvider>
+// }
+
+// function TestCopoent(params:type) {
+//   return <DynamicTheme a={parent => {...parent, color: contrast(parent.backgroundColor)}}>
+//     <Card></Card>
+//   </DynamicTheme>
+// }
+
 export function ButtonTheme({
   action: act,
   disabled: dis,
