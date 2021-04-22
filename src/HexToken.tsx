@@ -7,13 +7,14 @@ export function HexToken({
   children,
   dev,
 }: Token & { children: ReactNode; dev?: boolean }) {
-  useToken(x, y)
+  const hexProps = useToken(x, y)
 
   const { top, left } = toField({ x, y })
   const height = 0
 
   return (
     <div
+      className="hex"
       style={{
         position: 'absolute',
         // top: top - height * 7,
@@ -23,8 +24,9 @@ export function HexToken({
         height: STONE_HEIGHT,
         backgroundColor: dev ? '#ff000055' : '',
         transform: `translate( ${left}px,${top - height * 7}px)`,
-        transition: 'transform .5s',
+        // transition: 'transform .5s',
       }}
+      {...hexProps}
     >
       {children}
     </div>

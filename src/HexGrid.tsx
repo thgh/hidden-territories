@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from 'react'
 
@@ -14,7 +15,13 @@ export const STONE_HEIGHT = (STONE_WIDTH * 200) / 174
 export const STONE_HEIGHT_M = STONE_HEIGHT + STONE_MARGIN
 export const STONE_WIDTH_M = STONE_WIDTH + STONE_MARGIN
 
+interface HexProps {
+  [key: string]: (x: number, y: number, evt?: any) => void
+}
+
 export interface HexContext {
+  hexProps: null | HexProps
+  setHexProps: (p: null | HexProps) => void
   effect: (x: number, y: number) => () => void
   tokens: Set<Token>
 }
@@ -25,6 +32,8 @@ export interface Token {
 }
 
 const initial: HexContext = {
+  hexProps: null,
+  setHexProps: () => {},
   effect(x: number, y: number) {
     const token = { x, y }
     initial.tokens.add(token)
@@ -35,15 +44,26 @@ const initial: HexContext = {
   tokens: new Set(),
 }
 
-export const Context = createContext<HexContext>(initial)
+export const GridContext = createContext<HexContext>(initial)
 
 export function useToken(x: number, y: number) {
-  const { effect } = useContext(Context)
+  const { effect, hexProps } = useContext(GridContext)
   useEffect(() => effect(x, y), [x, y, effect])
+  return useMemo(
+    () =>
+      hexProps &&
+      Object.fromEntries(
+        Object.entries(hexProps).map(([key, value]) => [
+          key,
+          typeof value === 'function' ? (evt: any) => value(x, y, evt) : value,
+        ])
+      ),
+    [x, y, hexProps]
+  )
 }
 
 export function useGrid() {
-  const { tokens } = useContext(Context)
+  const { tokens } = useContext(GridContext)
   // console.log('useGrid tokens', tokens)
   return {
     center: getCenter(Array.from(tokens.values())),
@@ -55,6 +75,7 @@ export function useGrid() {
 /** Tracks the tokens inside it which allows to calculate the center/zoom */
 export function HexGrid(props: any) {
   const [, setS] = useState(0)
+  const [hexProps, setHexProps] = useState(null)
   const [tokens] = useState(() => new Set<Token>())
   const effect = useCallback(
     (x: number, y: number) => {
@@ -67,7 +88,13 @@ export function HexGrid(props: any) {
     },
     [tokens, setS]
   )
-  return <Context.Provider {...props} value={{ effect, tokens }} />
+
+  return (
+    <GridContext.Provider
+      {...props}
+      value={{ effect, tokens, hexProps, setHexProps }}
+    />
+  )
 }
 
 function getCenter(stones: Token[]) {

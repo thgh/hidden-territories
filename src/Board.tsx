@@ -1,4 +1,10 @@
-import React, { ReactNode, useMemo, useState } from 'react'
+import React, {
+  ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 
 import { PlayerMusterStatus } from './components/Avatar'
 import Button from './components/Button'
@@ -8,10 +14,16 @@ import { DiceAllocator } from './components/DiceAllocator'
 import { ButtonTheme, CardTheme } from './lib/theme'
 
 import Hexagon from './Hexagon'
-import { HexGrid } from './HexGrid'
+import { GridContext, HexGrid } from './HexGrid'
 import { HexGridUI } from './HexGridUI'
 import { HexToken } from './HexToken'
-import { ActionCard, createPersona, GameProps, roll } from './HiddenTerritories'
+import {
+  ActionCard,
+  createPersona,
+  GameProps,
+  Position,
+  roll,
+} from './HiddenTerritories'
 import Persona from './Persona'
 
 export function Board(props: GameProps) {
@@ -20,19 +32,19 @@ export function Board(props: GameProps) {
   const { ctx } = props
 
   return (
-    <div
-      style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100vw',
-        height: '100vh',
-        backgroundColor: 'black',
-        color: 'white',
-        overflow: 'hidden',
-      }}
-    >
-      <HexGrid>
+    <HexGrid>
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'black',
+          color: 'white',
+          overflow: 'hidden',
+        }}
+      >
         <HexGridUI>
           {props.G.cells.map(({ x, y, terrain }) => (
             <HexToken x={x} y={y} key={x + '.' + y}>
@@ -50,13 +62,13 @@ export function Board(props: GameProps) {
             </HexToken>
           ))}
         </HexGridUI>
-      </HexGrid>
 
-      {ctx.phase === 'prepare' && <PreparePhase {...props} />}
-      {ctx.phase === 'muster' && <MusterPhase {...props} />}
-      {ctx.phase === 'daytime' && <DaytimePhase {...props} />}
-      {/* {ctx.phase === 'play' && props.isActive && <PlayPhase {...props} />} */}
-    </div>
+        {ctx.phase === 'prepare' && <PreparePhase {...props} />}
+        {ctx.phase === 'muster' && <MusterPhase {...props} />}
+        {ctx.phase === 'daytime' && <DaytimePhase {...props} />}
+        {/* {ctx.phase === 'play' && props.isActive && <PlayPhase {...props} />} */}
+      </div>
+    </HexGrid>
   )
 }
 
@@ -196,7 +208,8 @@ function MusterPhase(props: GameProps) {
   )
 }
 
-function DaytimePhase({ moves, G, playerID }: GameProps) {
+function DaytimePhase(props: GameProps) {
+  const { moves, G, playerID } = props
   const me = G.players.find((p) => p.id === playerID)!
   const card = me.cards[0]
   if (!card) {
@@ -219,11 +232,7 @@ function DaytimePhase({ moves, G, playerID }: GameProps) {
             <div style={{ textAlign: 'center' }}>Move</div>
           </Card>
         </div>
-        <h1>Move</h1>
-        <h2>What's your target location?</h2>
-        <ButtonTheme action disabled={!me.cards.find(Boolean)}>
-          <Button onClick={() => moves.executeCard()}>Start moving...</Button>
-        </ButtonTheme>
+        <MoveAction {...props} />
       </Modal>
     )
   }
@@ -263,7 +272,47 @@ function DaytimePhase({ moves, G, playerID }: GameProps) {
   )
 }
 
-function MoveAction(params: type) {}
+function MoveAction(props: GameProps) {
+  const { moves, G, playerID } = props
+  // const me = G.players.find((p) => p.id === playerID)!
+  const { setHexProps } = useContext(GridContext)
+  const [target, setTarget] = useState<Position | null>(null)
+  const [confirmed, setConfirmed] = useState(false)
+  useEffect(() => {
+    setHexProps({
+      onMouseEnter: (x, y, evt) => {
+        document.querySelector('.hovering')?.classList.remove('hovering')
+        evt.target.classList.add('hovering')
+        console.log('enter', x, y)
+        if (!confirmed) {
+          setTarget({ x, y })
+        }
+      },
+      onClick: (x, y) => {
+        console.log('d', x, y, target)
+        setTarget({ x, y })
+        setConfirmed((a) => true)
+      },
+    })
+    return () => {
+      setHexProps(null)
+    }
+  }, [target])
+  return (
+    <div>
+      <h1>Choose a target location</h1>
+      <h2>
+        The further you go, the more chance you encounter denizens!{' '}
+        {confirmed ? 1 : 2}
+      </h2>
+      <ButtonTheme action disabled={!confirmed}>
+        <Button onClick={() => moves.executeCard()} disabled={!confirmed}>
+          Start moving{target && ' to ' + target.x + ',' + target.y}...
+        </Button>
+      </ButtonTheme>
+    </div>
+  )
+}
 
 function InitPlayerModal({ moves }: GameProps) {
   const [persona, setPersona] = useState(() => createPersona())

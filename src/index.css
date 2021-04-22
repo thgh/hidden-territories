@@ -56,8 +56,10 @@ code {
   z-index: 20;
   width: 100%;
   height: 100%;
+  pointer-events: none;
 }
 .modal-body {
+  pointer-events: all;
   background: #222f42;
 }
 .modal h1 {
@@ -103,8 +105,9 @@ code {
   border-color: #00000044;
 }
 
-.btn:disabled {
+button:disabled {
   /* background-color: rgb(24, 64, 156); */
+  cursor: not-allowed;
 }
 
 .btn--card {
@@ -140,4 +143,16 @@ code {
 
 .btn--dropdown + .btn--dropdown {
   margin-left: 0;
+}
+
+/* hex */
+.hex {
+  pointer-events: none;
+  transition: transform 3s;
+}
+.hex svg {
+  pointer-events: all;
+}
+.hovering {
+  transform: scale(1.2);
 }

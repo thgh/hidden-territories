@@ -39,6 +39,7 @@ export const positive = inherit(neutral, {
 
 export const disabled = inherit(neutral, {
   card: { color: '#0f0', backgroundColor: '#006600' },
+  button: { color: '#ffffff66' },
 })
 
 export const action = inherit(neutral, {
