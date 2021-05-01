@@ -13,10 +13,10 @@ export function Avatar({
   return (
     <div
       style={{
-        fontSize: size / 2,
-        width: '2em',
-        height: '2em',
-        lineHeight: '2em',
+        fontSize: size / (name.length || 1),
+        width: size,
+        height: size,
+        lineHeight: size + 'px',
         textAlign: 'center',
         margin,
         ...useTheme().card,
@@ -38,7 +38,7 @@ export function PlayerStatus({
   const theme = useTheme()
   return (
     <div>
-      <Avatar name={player.id + ''} size={120} margin={20} />
+      <Avatar name={player.name || player.id + ''} size={120} margin={20} />
       <div style={{ textAlign: 'center', color: theme.card.color }}>
         {label || 'Waiting...'}
       </div>
@@ -50,7 +50,7 @@ export function PlayerMusterStatus({ player }: { player: Player }) {
   const theme = useTheme()
   return (
     <div>
-      <Avatar name={player.id + ''} size={120} margin={20} />
+      <Avatar name={player.name || player.id + ''} size={120} margin={20} />
       <div style={{ textAlign: 'center', color: theme.card.color }}>
         {!player.plannedCardsConfirmed
           ? 'Planning action cards'

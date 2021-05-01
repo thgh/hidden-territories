@@ -24,9 +24,13 @@ export interface Moves {
 
   // Daytime
   executeCard: () => void
-  executeMove: (target: Position) => void
+  executeMove: (target: Position | null) => void
   endSituation: () => void
   endDaytimePhase: () => void
+
+  // Situations
+  fight: () => void
+  evade: () => void
 
   travel: (cell: Cell) => void
   allocateDice: () => void
@@ -35,9 +39,7 @@ export interface Moves {
   nextCell: () => void
   sneak: () => void
   random: () => void
-  evade: () => void
   interact: () => void
-  fight: () => void
   resolve: () => void
 }
 
@@ -67,6 +69,7 @@ export interface Position {
 
 export interface Player extends Cell {
   id: string
+  name: string
   // split in spellbook (spells)
   // split in journal (lore)
   // split in backpack (raw)

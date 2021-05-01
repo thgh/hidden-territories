@@ -56,16 +56,18 @@ export function Board(props: GameProps) {
           ))}
         </HexGridUI>
 
-        {!me ? (
-          <Modal padding>Wait for the muster phase to join the game</Modal>
-        ) : me?.blocking.length ? (
-          <Situation {...props} />
-        ) : ctx.phase === 'prepare' || !me ? (
+        {ctx.phase === 'prepare' ? (
           <PreparePhase {...props} />
         ) : ctx.phase === 'muster' ? (
           <MusterPhase {...props} />
+        ) : !me ? (
+          <Modal padding>Wait for the muster phase to join the game</Modal>
+        ) : me?.blocking.length ? (
+          <Situation {...props} />
         ) : ctx.phase === 'daytime' ? (
           <DaytimePhase {...props} />
+        ) : ctx.phase === 'night' ? (
+          <NightPhase {...props} />
         ) : null}
         {/* {ctx.phase === 'play' && props.isActive && <PlayPhase {...props} />} */}
       </div>
@@ -107,7 +109,7 @@ function PreparePhase({ moves, G }: GameProps) {
 }
 
 function MusterPhase(props: GameProps) {
-  console.log('MusterPhase', props.playerID, props)
+  // console.log('MusterPhase', props.playerID, props)
   const { G, moves, playerID } = props
   const me = G.players.find((p) => p.id === playerID)!
 
@@ -212,7 +214,7 @@ function MusterPhase(props: GameProps) {
 function DaytimePhase(props: GameProps) {
   const { moves, G, playerID } = props
   const me = G.players.find((p) => p.id === playerID)!
-  const card = me.cards[0]
+  const card = me.cards.find(Boolean)
   if (!card) {
     return (
       <Modal padding>
@@ -227,10 +229,14 @@ function DaytimePhase(props: GameProps) {
           }}
         >
           {G.players.map((p, key) => (
-            <CardTheme positive={p.allocationConfirmed} key={key}>
+            <CardTheme positive={!p.cards.filter(Boolean).length} key={key}>
               <PlayerStatus
                 player={p}
-                label={p.cards.length ? p.cards.length + ' cards' : ''}
+                label={
+                  p.cards.filter(Boolean).length
+                    ? p.cards.filter(Boolean).length + ' cards'
+                    : ''
+                }
               />
             </CardTheme>
           ))}
@@ -292,6 +298,22 @@ function DaytimePhase(props: GameProps) {
   )
 }
 
+function NightPhase(props: GameProps) {
+  const { moves } = props
+
+  return (
+    <Modal padding>
+      <h1>Nighttime phase TODO</h1>
+      <h2>This phase is not yet implemented.</h2>
+      <ButtonTheme action>
+        <Button onClick={() => moves.endNightPhase()}>
+          Abort nighttime phase
+        </Button>
+      </ButtonTheme>
+    </Modal>
+  )
+}
+
 function MoveAction(props: GameProps) {
   const moves = props.moves as Moves
   // const me = G.players.find((p) => p.id === playerID)!
@@ -336,7 +358,20 @@ function MoveAction(props: GameProps) {
       setHexProps(null)
     }
     // eslint-disable-next-line
-  }, [target, confirmed])
+  }, [confirmed])
+  useEffect(
+    () => () => {
+      document
+        .querySelector('.hovering')
+        ?.closest('.hex')
+        ?.classList.remove('hovering')
+      document
+        .querySelector('.action-move-target')
+        ?.closest('.hex')
+        ?.classList.remove('action-move-target')
+    },
+    []
+  )
   return (
     <div>
       <h1>Choose a target location</h1>
@@ -352,6 +387,7 @@ function MoveAction(props: GameProps) {
           Start moving{target && ' to ' + target.x + ',' + target.y}...
         </Button>
       </ButtonTheme>
+      <Button onClick={() => moves.executeMove(null)}>Stop</Button>
     </div>
   )
 }

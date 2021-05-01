@@ -16,6 +16,7 @@ export function initPlayer(G: GameState, ctx: Ctx, options: InitPlayerOptions) {
   }
   G.players = G.players.concat(createPlayer({ ...options, id: ctx.playerID }))
 }
+
 export function planAction(G: GameState, ctx: Ctx, plan: PlanActionCardProps) {
   if (!ctx.playerID) {
     return console.warn('no player?')
@@ -26,6 +27,7 @@ export function planAction(G: GameState, ctx: Ctx, plan: PlanActionCardProps) {
   }
   me.cards[plan.index] = plan.action
 }
+
 export function confirmPlannedCards(G: GameState, ctx: Ctx) {
   player(G, ctx, (me) => {
     if (me.plannedCardsConfirmed) {
@@ -34,6 +36,7 @@ export function confirmPlannedCards(G: GameState, ctx: Ctx) {
     me.plannedCardsConfirmed = true
   })
 }
+
 export function confirmDice(G: GameState, ctx: Ctx) {
   player(G, ctx, (me) => {
     if (me.diceConfirmed) {
@@ -42,6 +45,7 @@ export function confirmDice(G: GameState, ctx: Ctx) {
     me.diceConfirmed = true
   })
 }
+
 export function allocateDie(G: GameState, ctx: Ctx, allocation: Allocation) {
   player(G, ctx, (me) => {
     if (!me.allocations) me.allocations = []
@@ -49,6 +53,7 @@ export function allocateDie(G: GameState, ctx: Ctx, allocation: Allocation) {
     me.allocations = me.allocations.filter(uniqFunc((a) => a.die.index))
   })
 }
+
 export function confirmAllocation(G: GameState, ctx: Ctx) {
   player(G, ctx, (me) => {
     if (me.allocationConfirmed) {
@@ -56,28 +61,20 @@ export function confirmAllocation(G: GameState, ctx: Ctx) {
     }
     me.allocationConfirmed = true
   })
-}
-export function waitForAll(G: GameState, ctx: Ctx) {
-  if (!ctx.playerID) {
-    return console.warn('no player?')
-  }
-  if (G.waiting.includes(ctx.playerID)) {
-    return console.warn('already waiting...')
-  }
 
-  if (G.waiting.length + 1 >= G.players.length) {
-    console.log(
-      'everyone is waiting, lets go to next phase',
-      G.waiting.length,
-      G.players.length
-    )
-    ctx.events?.endPhase?.()
-    return
+  const busy = G.players.find((p) => !p.allocationConfirmed)
+  if (!busy) {
+    endMusterPhase(G, ctx)
   }
-  console.log('letswait', G.waiting.concat(ctx.playerID))
-  G.waiting = G.waiting.concat(ctx.playerID)
 }
+
 export function endMusterPhase(G: GameState, ctx: Ctx) {
-  // console.log('G.waiting', G.waiting)
+  G.players.forEach((p) => {
+    Object.assign(p, {
+      plannedCardsConfirmed: false,
+      diceConfirmed: false,
+      allocationConfirmed: false,
+    })
+  })
   ctx.events?.endPhase?.()
 }

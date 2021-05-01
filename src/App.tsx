@@ -43,8 +43,7 @@ export function Playground() {
   })
   return (
     <Component
-      // debug
-      debug={false}
+      debug={window.location.search.includes('debug')}
       matchID={matchID}
       playerID={playerID}
       credentials={document.cookie.replace(

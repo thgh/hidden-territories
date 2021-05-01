@@ -92,8 +92,8 @@ function DiceAllocatorCard({
               flexDirection: 'column',
             }}
           >
-            {allocations.map(({ die }) => (
-              <Die {...die} size={18} margin={2} draggable />
+            {allocations.map(({ die }, key) => (
+              <Die key={key} {...die} size={18} margin={2} draggable />
             ))}
           </div>
         ) : null}

@@ -149,6 +149,7 @@ button:disabled {
 .hex {
   pointer-events: none;
   user-select: none;
+  transition: transform 2s;
 }
 .hex * {
   pointer-events: none;

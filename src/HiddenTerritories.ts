@@ -10,15 +10,17 @@ import {
   confirmDice,
   allocateDie,
   confirmAllocation,
-  waitForAll,
   endMusterPhase,
 } from './moves/muster'
 import {
   executeCard,
   executeMove,
+  fight,
+  evade,
   endSituation,
   endDaytimePhase,
 } from './moves/daytime'
+import { endNightPhase } from './moves/night'
 
 export const HiddenTerritories: Game = {
   name: 'HiddenTerritories',
@@ -106,7 +108,6 @@ export const HiddenTerritories: Game = {
         confirmDice,
         allocateDie,
         confirmAllocation,
-        waitForAll,
         endMusterPhase,
       },
       turn: {
@@ -120,104 +121,34 @@ export const HiddenTerritories: Game = {
       moves: {
         executeCard,
         executeMove,
+        fight,
+        evade,
         endSituation,
         endDaytimePhase,
       },
       turn: {
         activePlayers: ActivePlayers.ALL,
       },
-      next: 'play',
+      next: 'night',
+    },
+
+    // Rest
+    night: {
+      moves: {
+        endNightPhase,
+      },
+      turn: {
+        activePlayers: ActivePlayers.ALL,
+      },
+      next: 'muster',
     },
 
     play: {
-      next: 'final',
-
+      moves: { endNightPhase },
       turn: {
-        activePlayers: ActivePlayers.ALL_ONCE,
-        endIf(g, ctx) {
-          console.log('actives', Object.values(ctx.activePlayers || {}))
-          return !Object.values(ctx.activePlayers || {}).filter(
-            (s) => s !== 'wait'
-          ).length
-        },
-
-        stages: {
-          planning: {
-            moves: {
-              // Plan 5 slot
-              planSlot() {},
-              confirm: (ctx) => {
-                if (ctx.lastPlayer) {
-                  // start executing the actions
-                  // daytime first card of ctx.activePlayer (move, )
-                  // daytime second card
-                  // ...
-                  // daytime first card of next player based on initiative order
-                  // daytime second card
-                  // ...
-                } else {
-                  return { next: 'planning_done' }
-                }
-              },
-            },
-          },
-          planning_done: {
-            moves: {},
-          },
-          advance_time: {
-            moves: {
-              playActionCard() {}, // on sequencer dashboard
-            },
-          },
-          roll: {
-            moves: {
-              rollDice() {},
-            },
-          },
-          allocate_dice: {
-            moves: {
-              allocateDice() {}, // allocate from pool to action cards
-              powerUpDistance() {}, // from dice pool
-            },
-          },
-          may_get_lost: {
-            moves: {
-              rollDice: () => ({ next: Math.random() ? 'got_lost' : 'travel' }),
-            },
-          },
-          got_lost: {},
-          attack: {
-            next: 'wait',
-          },
-          travel: {
-            next: 'wait',
-            moves: {
-              travel(G: GameState, ctx, cell) {
-                // console.log('trab', G, ctx)
-                const player = G.players.find((p) => p.id === ctx.playerID)
-                if (!player) return alert('unexpected player')
-                player.x = cell.x
-                player.y = cell.y
-              },
-            },
-          },
-          travel_chits: {
-            moves: {
-              sneak: () => ({ next: Math.random() ? 'travel' : 'encounter' }),
-              evade: () => ({ next: Math.random() ? 'travel' : 'encounter' }),
-            },
-          },
-          arrived: { moves: { interact() {} } },
-          encounter: { moves: { fight() {}, resolve() {} } },
-          wait: {
-            moves: {
-              check() {
-                console.log('check')
-              },
-            },
-          },
-        },
+        activePlayers: ActivePlayers.ALL,
       },
+      next: 'muster',
     },
     final: {},
   },

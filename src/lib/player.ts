@@ -3,6 +3,7 @@ import { Player, PersonaConfig, GameState } from '../lib/types'
 
 export function createPlayer(player: { id: string } & Partial<Player>) {
   return {
+    name: randomName(),
     inventory: [],
     backpack: [],
 
@@ -19,8 +20,11 @@ export function createPlayer(player: { id: string } & Partial<Player>) {
     actionConfirmed: false,
     moveTarget: null,
     moveCount: 0,
-
     blocking: [],
+
+    // night phase
+    // TODO
+
     health: 12,
     gold: 0,
     xp: 0,
@@ -41,6 +45,12 @@ export function createPersona(): PersonaConfig {
     eyeHeight: rand(0.1, 0.5),
     faceColor: color(),
   }
+}
+
+export function randomName() {
+  return ['Barbarian', 'Vicky', 'Joseph', 'Alice'][
+    Math.floor(Math.random() * 4)
+  ]
 }
 
 export function color() {
