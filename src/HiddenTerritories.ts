@@ -17,6 +17,11 @@ import {
   executeMove,
   fight,
   evade,
+  search,
+  rest,
+  stealth,
+  parlay,
+  engage,
   endSituation,
   endDaytimePhase,
 } from './moves/daytime'
@@ -185,6 +190,11 @@ export const HiddenTerritories: Game = {
       moves: {
         executeCard,
         executeMove,
+        search,
+        rest,
+        stealth,
+        parlay,
+        engage,
         fight,
         evade,
         endSituation,

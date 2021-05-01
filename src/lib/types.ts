@@ -25,6 +25,11 @@ export interface Moves {
   // Daytime
   executeCard: () => void
   executeMove: (target: Position | null) => void
+  search: (type: 'cache' | 'poi' | 'denizen' | 'encounter') => void
+  rest: () => void
+  stealth: () => void
+  parlay: () => void
+  engage: () => void
   endSituation: () => void
   endDaytimePhase: () => void
 

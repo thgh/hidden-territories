@@ -2,6 +2,8 @@ import { Ctx } from 'boardgame.io'
 import { player } from '../lib/player'
 import type { GameState, Position, Player, Situation } from '../lib/types'
 
+// Actions > general
+
 export function executeCard(G: GameState, ctx: Ctx) {
   player(G, ctx, (me) => {
     const card = me.cards.find(Boolean)
@@ -22,6 +24,8 @@ export function executeCard(G: GameState, ctx: Ctx) {
     })
   })
 }
+
+// Actions > move
 
 export function executeMove(G: GameState, ctx: Ctx, target: Position | null) {
   player(G, ctx, (me) => {
@@ -112,6 +116,107 @@ export function evade(G: GameState, ctx: Ctx) {
   }
 }
 
+// Actions > Search
+
+export function search(G: GameState, ctx: Ctx, type: string) {
+  nextActionCard(G, ctx)
+  const here = locate(G, ctx)
+
+  const poi = here.tokens.find((t) => t.type === 'poi')
+  if (poi) {
+    return resolve(G, ctx, {
+      title: 'You found a poi',
+    })
+  }
+
+  const cache = here.tokens.find((t) => t.type === 'cache')
+  if (cache) {
+    return resolve(G, ctx, {
+      title: 'You found a cache',
+    })
+  }
+
+  const enc = here.tokens.find((t) => t.type === 'encounter')
+  if (enc) {
+    player(G, ctx, (me) => {
+      move_encounter(G, ctx, me)
+    })
+    return
+  }
+
+  if (ctx.random!.Number() > 0.5) {
+    resolve(G, ctx, {
+      title: 'You searched successfully',
+    })
+  } else {
+    resolve(G, ctx, {
+      title: 'Nope, you found nothing',
+    })
+  }
+}
+
+// Actions >
+
+export function engage(G: GameState, ctx: Ctx) {
+  nextActionCard(G, ctx)
+  if (ctx.random!.Number() > 0.5) {
+    resolve(G, ctx, {
+      title: 'You engaged successfully',
+    })
+  } else {
+    resolve(G, ctx, {
+      title: 'Nope, you failed to engage',
+    })
+  }
+}
+
+// Actions > Rest
+
+export function rest(G: GameState, ctx: Ctx) {
+  nextActionCard(G, ctx)
+  if (ctx.random!.Number() > 0.5) {
+    resolve(G, ctx, {
+      title: 'You rested successfully',
+    })
+  } else {
+    resolve(G, ctx, {
+      title: 'Nope, you failed to rest',
+    })
+  }
+}
+
+// Actions >
+
+export function stealth(G: GameState, ctx: Ctx) {
+  nextActionCard(G, ctx)
+  if (ctx.random!.Number() > 0.5) {
+    resolve(G, ctx, {
+      title: 'You hid successfully',
+    })
+  } else {
+    resolve(G, ctx, {
+      title: 'You were found by the monster!',
+    })
+  }
+}
+
+// Actions >
+
+export function parlay(G: GameState, ctx: Ctx) {
+  nextActionCard(G, ctx)
+  if (ctx.random!.Number() > 0.5) {
+    resolve(G, ctx, {
+      title: 'You parlayed successfully',
+      description: 'You now have a friend',
+    })
+  } else {
+    resolve(G, ctx, {
+      title: 'Nope, you failed to parlay',
+      description: 'Your parlay resulted in an angry monster',
+    })
+  }
+}
+
 // Done
 
 export function endDaytimePhaseCheck(G: GameState, ctx: Ctx) {
@@ -152,4 +257,21 @@ function resolve(G: GameState, ctx: Ctx, resolution: Partial<Situation>) {
       ...resolution,
     }
   })
+}
+
+function nextActionCard(G: GameState, ctx: Ctx) {
+  player(G, ctx, (me) => {
+    me.cards = me.cards.slice(1)
+  })
+}
+
+function locate(G: GameState, ctx: Ctx) {
+  const me = G.players.find((p) => p.id === ctx.playerID)
+  if (!me) throw new Error('player not located')
+  return {
+    hex: G.cells.find((p) => p.x === me.x && p.y === me.y)!,
+    tokens: G.tokens.filter(
+      (t) => t.position && t.position.x === me.x && t.position.y === me.y
+    )!,
+  }
 }

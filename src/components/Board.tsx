@@ -283,10 +283,10 @@ function DaytimePhase(props: GameProps) {
             <Button onClick={() => moves.parlay()}>Parlay</Button>
           )}
           {here.tokens.find((t) => t.type === 'cache') && (
-            <Button onClick={() => moves.search_cache()}>Search cache</Button>
+            <Button onClick={() => moves.search('cache')}>Search cache</Button>
           )}
           {here.tokens.find((t) => t.type === 'poi') && (
-            <Button onClick={() => moves.search_poi()}>Search POI</Button>
+            <Button onClick={() => moves.search('poi')}>Search POI</Button>
           )}
           <Button onClick={() => moves.search()}>Start search</Button>
           <Button onClick={() => moves.stealth()}>Stealth</Button>
