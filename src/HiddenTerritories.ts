@@ -1,6 +1,6 @@
 import type { Game } from 'boardgame.io'
 import { ActivePlayers } from 'boardgame.io/core'
-import type { GameState } from './lib/types'
+import type { GameState, Token } from './lib/types'
 
 import { toggleVote, loadQuest } from './moves/prepare'
 import {
@@ -73,7 +73,71 @@ export const HiddenTerritories: Game = {
         { x: -5, y: 0, terrain: 1 },
         { x: -5, y: 1, terrain: 1 },
       ],
-      positions: [],
+      tokens: [
+        {
+          type: 'food',
+          title: 'Rabbit',
+          health: 1,
+          water: 1,
+          position: {
+            x: 0,
+            y: 0,
+          },
+        },
+        {
+          type: 'food',
+          title: 'Berries',
+          health: 1,
+          position: {
+            x: 0,
+            y: -1,
+          },
+        },
+        {
+          type: 'food',
+          title: 'Water',
+          water: 1,
+          position: {
+            x: 1,
+            y: 0,
+          },
+        },
+        {
+          type: 'raw',
+          title: 'Copper',
+          gold: 487,
+          position: {
+            x: -1,
+            y: -1,
+          },
+        },
+        {
+          type: 'poi',
+          title: 'Ruin',
+          position: {
+            x: -1,
+            y: -1,
+          },
+        },
+        {
+          type: 'cache',
+          title: 'Chest',
+          position: {
+            x: 0,
+            y: 0,
+          },
+          items: [
+            {
+              type: 'raw',
+              title: 'Treasure',
+            },
+            {
+              type: 'trap',
+              title: 'Pungy stick',
+            },
+          ],
+        },
+      ],
     } as GameState),
 
   endIf() {
@@ -156,48 +220,6 @@ export const HiddenTerritories: Game = {
   // playerView: PlayerView.STRIP_SECRETS,
 }
 
-const items = [
-  {
-    type: 'food',
-    name: 'Rabbit',
-    health: 1,
-    water: 1,
-  },
-  {
-    type: 'food',
-    name: 'Berries',
-    health: 1,
-  },
-  {
-    type: 'food',
-    name: 'Water',
-    water: 1,
-  },
-  {
-    type: 'raw',
-    name: 'Copper',
-    gold: 487,
-  },
-  {
-    type: 'poi',
-    name: 'Ruin',
-  },
-  {
-    type: 'cache',
-    name: 'Chest',
-    items: [
-      {
-        type: 'raw',
-        name: 'Treasure',
-      },
-      {
-        type: 'trap',
-        name: 'Pungy stick',
-      },
-    ],
-  },
-]
-
 const denizens = [
   {
     type: '?',
@@ -262,5 +284,5 @@ export const optionTree: { [key: string]: string[] } = {
 
 // @ts-ignore
 if (typeof window !== 'undefined' && window.false) {
-  console.log('i', items, denizens, actions, optionTree)
+  console.log('i', denizens, actions, optionTree)
 }

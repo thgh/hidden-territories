@@ -82,6 +82,16 @@ export function player(G: GameState, ctx: Ctx, func: (p: Player) => void) {
   return func(me)
 }
 
+export function locate(G: GameState, ctx: Ctx, me: Player) {
+  if (!me) throw new Error('player not located')
+  return {
+    hex: G.cells.find((p) => p.x === me.x && p.y === me.y)!,
+    tokens: G.tokens.filter(
+      (t) => t.position && t.position.x === me.x && t.position.y === me.y
+    )!,
+  }
+}
+
 // Usage:
 // items.filter(uniqBy('id'))
 export function uniqBy<T>(prop: keyof T) {

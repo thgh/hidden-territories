@@ -49,9 +49,9 @@ export interface GameState {
 
   waiting: string[]
 
-  positions: Cell[]
   cells: Cell[]
   players: Player[]
+  tokens: Token[]
 }
 
 export interface Quest {
@@ -65,6 +65,16 @@ export interface Cell extends Position {
 export interface Position {
   x: number
   y: number
+}
+
+export interface Token {
+  title: string
+  type: 'encounter' | 'cache' | 'poi' | 'food'
+  position?: Position
+  shape?: 'round' | 'hex'
+  visible?: boolean
+  health?: number
+  items?: Token[]
 }
 
 export interface Player extends Cell {

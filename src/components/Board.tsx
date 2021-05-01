@@ -15,7 +15,7 @@ import { ActionCard, GameProps, Moves, Position } from '../lib/types'
 import Persona from './Persona'
 import Modal from './Modal'
 import Situation from './Situation'
-import { roll, createPersona } from '../lib/player'
+import { roll, createPersona, locate } from '../lib/player'
 
 export function Board(props: GameProps) {
   // console.log('Board', props)
@@ -212,7 +212,7 @@ function MusterPhase(props: GameProps) {
 }
 
 function DaytimePhase(props: GameProps) {
-  const { moves, G, playerID } = props
+  const { moves, G, ctx, playerID } = props
   const me = G.players.find((p) => p.id === playerID)!
   const card = me.cards.find(Boolean)
   if (!card) {
@@ -264,6 +264,8 @@ function DaytimePhase(props: GameProps) {
   }
 
   if (card.type === 'search') {
+    const here = locate(G, ctx, me)
+    console.log('here', here)
     return (
       <Modal padding overflow="auto">
         <div style={{ float: 'left' }}>
@@ -274,9 +276,21 @@ function DaytimePhase(props: GameProps) {
         <h1>Search</h1>
         <h2>How about we open this chest?</h2>
         <ButtonTheme action disabled={!me.cards.find(Boolean)}>
-          <Button onClick={() => moves.executeCard()}>
-            Search in hex {me.x},{me.y}
-          </Button>
+          {here.tokens.find((t) => t.type === 'encounter') && (
+            <Button onClick={() => moves.engage()}>Engage</Button>
+          )}
+          {here.tokens.find((t) => t.type === 'encounter') && (
+            <Button onClick={() => moves.parlay()}>Parlay</Button>
+          )}
+          {here.tokens.find((t) => t.type === 'cache') && (
+            <Button onClick={() => moves.search_cache()}>Search cache</Button>
+          )}
+          {here.tokens.find((t) => t.type === 'poi') && (
+            <Button onClick={() => moves.search_poi()}>Search POI</Button>
+          )}
+          <Button onClick={() => moves.search()}>Start search</Button>
+          <Button onClick={() => moves.stealth()}>Stealth</Button>
+          <Button onClick={() => moves.rest()}>Rest</Button>
         </ButtonTheme>
       </Modal>
     )
