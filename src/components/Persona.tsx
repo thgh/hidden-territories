@@ -1,4 +1,5 @@
-import { PersonaConfig, rand } from './HiddenTerritories'
+import { rand } from '../lib/player'
+import { PersonaConfig } from '../lib/types'
 
 const boxShadow = '0 0 8px rgba(0, 0, 0, .5)'
 

@@ -10,7 +10,7 @@ import { Local } from 'boardgame.io/multiplayer'
 import { SocketIO } from 'boardgame.io/multiplayer'
 
 import { Client, Lobby } from 'boardgame.io/react'
-import { Board } from './Board'
+import { Board } from './components/Board'
 import { HiddenTerritories } from './HiddenTerritories'
 
 export default function App() {

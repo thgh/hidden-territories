@@ -1,35 +1,28 @@
-import React, {
-  ReactNode,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react'
+import React, { useContext, useEffect, useMemo, useState } from 'react'
 
-import { PlayerMusterStatus } from './components/Avatar'
-import Button from './components/Button'
-import { Card, PlanCards } from './components/Card'
-import { Dice } from './components/Dice'
-import { DiceAllocator } from './components/DiceAllocator'
-import { ButtonTheme, CardTheme } from './lib/theme'
+import { PlayerMusterStatus, PlayerStatus } from './Avatar'
+import Button from './Button'
+import { Card, PlanCards } from './Card'
+import { Dice } from './Dice'
+import { DiceAllocator } from './DiceAllocator'
+import { ButtonTheme, CardTheme } from '../lib/theme'
 
 import Hexagon from './Hexagon'
 import { GridContext, HexGrid } from './HexGrid'
 import { HexGridUI } from './HexGridUI'
 import { HexToken } from './HexToken'
-import {
-  ActionCard,
-  createPersona,
-  GameProps,
-  Position,
-  roll,
-} from './HiddenTerritories'
+import { ActionCard, GameProps, Moves, Position } from '../lib/types'
 import Persona from './Persona'
+import Modal from './Modal'
+import Situation from './Situation'
+import { roll, createPersona } from '../lib/player'
 
 export function Board(props: GameProps) {
   // console.log('Board', props)
 
   const { ctx } = props
+  const { G, playerID } = props
+  const me = G.players.find((p) => p.id === playerID)!
 
   return (
     <HexGrid>
@@ -52,7 +45,7 @@ export function Board(props: GameProps) {
                 label={x + ' | ' + y}
                 terrain={terrain}
                 //@ts-ignore
-                onClick={() => props.moves.travel({ x, y })}
+                // onClick={() => props.moves.travel({ x, y })}
               />
             </HexToken>
           ))}
@@ -63,9 +56,17 @@ export function Board(props: GameProps) {
           ))}
         </HexGridUI>
 
-        {ctx.phase === 'prepare' && <PreparePhase {...props} />}
-        {ctx.phase === 'muster' && <MusterPhase {...props} />}
-        {ctx.phase === 'daytime' && <DaytimePhase {...props} />}
+        {!me ? (
+          <Modal padding>Wait for the muster phase to join the game</Modal>
+        ) : me?.blocking.length ? (
+          <Situation {...props} />
+        ) : ctx.phase === 'prepare' || !me ? (
+          <PreparePhase {...props} />
+        ) : ctx.phase === 'muster' ? (
+          <MusterPhase {...props} />
+        ) : ctx.phase === 'daytime' ? (
+          <DaytimePhase {...props} />
+        ) : null}
         {/* {ctx.phase === 'play' && props.isActive && <PlayPhase {...props} />} */}
       </div>
     </HexGrid>
@@ -191,8 +192,8 @@ function MusterPhase(props: GameProps) {
           marginLeft: -20,
         }}
       >
-        {G.players.map((p) => (
-          <CardTheme positive={p.allocationConfirmed}>
+        {G.players.map((p, key) => (
+          <CardTheme positive={p.allocationConfirmed} key={key}>
             <PlayerMusterStatus player={p} />
           </CardTheme>
         ))}
@@ -216,7 +217,26 @@ function DaytimePhase(props: GameProps) {
     return (
       <Modal padding>
         <h1>No action cards left</h1>
-        <p>Waiting for next turn...</p>
+        <h2>Waiting for next turn...</h2>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            marginLeft: -20,
+          }}
+        >
+          {G.players.map((p, key) => (
+            <CardTheme positive={p.allocationConfirmed} key={key}>
+              <PlayerStatus
+                player={p}
+                label={p.cards.length ? p.cards.length + ' cards' : ''}
+              />
+            </CardTheme>
+          ))}
+        </div>
+
+        <div style={{ marginBottom: 24 }}></div>
         <ButtonTheme action>
           <Button onClick={() => moves.endDaytimePhase()}>Abort daytime</Button>
         </ButtonTheme>
@@ -264,16 +284,16 @@ function DaytimePhase(props: GameProps) {
         </Card>
       </div>
       <h1>Daytime phase TODO</h1>
-      <h2>Execute your action cards one by one.</h2>
+      <h2>This action card is not yet implemented.</h2>
       <ButtonTheme action disabled={!me.cards.find(Boolean)}>
-        <Button onClick={() => moves.execute()}>Start {card.type}</Button>
+        <Button onClick={() => moves.executeCard()}>Throw away</Button>
       </ButtonTheme>
     </Modal>
   )
 }
 
 function MoveAction(props: GameProps) {
-  const { moves, G, playerID } = props
+  const moves = props.moves as Moves
   // const me = G.players.find((p) => p.id === playerID)!
   const { setHexProps } = useContext(GridContext)
   const [target, setTarget] = useState<Position | null>(null)
@@ -281,23 +301,42 @@ function MoveAction(props: GameProps) {
   useEffect(() => {
     setHexProps({
       onMouseEnter: (x, y, evt) => {
-        document.querySelector('.hovering')?.classList.remove('hovering')
-        evt.target.classList.add('hovering')
-        console.log('enter', x, y)
         if (!confirmed) {
+          document
+            .querySelector('.hovering')
+            ?.closest('.hex')
+            ?.classList.remove('hovering')
+          evt.target.closest('.hex')?.classList.add('hovering')
           setTarget({ x, y })
         }
       },
-      onClick: (x, y) => {
-        console.log('d', x, y, target)
-        setTarget({ x, y })
-        setConfirmed((a) => true)
+      onClick: (x, y, evt) => {
+        setConfirmed((c) => {
+          document
+            .querySelector('.hovering')
+            ?.closest('.hex')
+            ?.classList.remove('hovering')
+          evt.target.closest('.hex')?.classList.add('hovering')
+          setTarget({ x, y })
+
+          // Only mark as target when confirmed
+          document
+            .querySelector('.action-move-target')
+            ?.closest('.hex')
+            ?.classList.remove('action-move-target')
+          if (!c) {
+            evt.target.closest('.hex')?.classList.add('action-move-target')
+          }
+
+          return !c
+        })
       },
     })
     return () => {
       setHexProps(null)
     }
-  }, [target])
+    // eslint-disable-next-line
+  }, [target, confirmed])
   return (
     <div>
       <h1>Choose a target location</h1>
@@ -306,7 +345,10 @@ function MoveAction(props: GameProps) {
         {confirmed ? 1 : 2}
       </h2>
       <ButtonTheme action disabled={!confirmed}>
-        <Button onClick={() => moves.executeCard()} disabled={!confirmed}>
+        <Button
+          onClick={() => moves.executeMove(target!)}
+          disabled={!confirmed}
+        >
           Start moving{target && ' to ' + target.x + ',' + target.y}...
         </Button>
       </ButtonTheme>
@@ -434,43 +476,6 @@ function InitPlayerModal({ moves }: GameProps) {
 // function ActionButton(props: any) {
 //   return <Button className="btn-action" {...props} />
 // }
-
-function Modal({
-  children,
-  overflow,
-  padding = false,
-  row = false,
-}: {
-  children: ReactNode
-  overflow?: 'auto'
-  padding?: boolean
-  row?: boolean
-}) {
-  return (
-    <div className="modal">
-      <div
-        className="modal-body"
-        style={{
-          maxWidth: 600,
-          margin: 'auto',
-          padding: padding ? 24 : 0,
-          overflow: overflow,
-          borderBottomLeftRadius: 20,
-          borderBottomRightRadius: 20,
-          // overflow: 'hidden',
-          fontSize: 14,
-          ...(row && {
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-          }),
-        }}
-      >
-        {children}
-      </div>
-    </div>
-  )
-}
 
 // function Cards({
 //   cards,

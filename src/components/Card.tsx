@@ -1,6 +1,7 @@
 import { HTMLAttributes, useState } from 'react'
-import { ActionCard, PlanActionCard, optionTree } from '../HiddenTerritories'
+import { optionTree } from '../HiddenTerritories'
 import { CardTheme, useTheme } from '../lib/theme'
+import { ActionCard, PlanActionCard } from '../lib/types'
 
 export function PlanCards({
   cards,

@@ -1,10 +1,5 @@
 import React, { useState } from 'react'
-import {
-  ActionCard,
-  AllocateDie,
-  Allocation,
-  RolledDie,
-} from '../HiddenTerritories'
+import { ActionCard, AllocateDie, Allocation, RolledDie } from '../lib/types'
 import { CardTheme } from '../lib/theme'
 import { Card } from './Card'
 import { Die } from './Dice'

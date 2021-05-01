@@ -1,5 +1,5 @@
-import { Player } from '../HiddenTerritories'
 import { useTheme } from '../lib/theme'
+import { Player } from '../lib/types'
 
 export function Avatar({
   size = 50,
@@ -24,6 +24,24 @@ export function Avatar({
       }}
     >
       {name}
+    </div>
+  )
+}
+
+export function PlayerStatus({
+  player,
+  label,
+}: {
+  player: Player
+  label: string
+}) {
+  const theme = useTheme()
+  return (
+    <div>
+      <Avatar name={player.id + ''} size={120} margin={20} />
+      <div style={{ textAlign: 'center', color: theme.card.color }}>
+        {label || 'Waiting...'}
+      </div>
     </div>
   )
 }

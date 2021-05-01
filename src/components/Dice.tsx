@@ -1,4 +1,4 @@
-import { RolledDie } from '../HiddenTerritories'
+import { RolledDie } from '../lib/types'
 
 export function Dice({
   count = 5,
