@@ -65,6 +65,7 @@ export interface Quest {
 
 export interface Cell extends Position {
   terrain?: number
+  movement_modifier: string[]
 }
 
 export interface Position {

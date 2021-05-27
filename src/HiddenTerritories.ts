@@ -26,6 +26,7 @@ import {
   endDaytimePhase,
 } from './moves/daytime'
 import { endNightPhase } from './moves/night'
+import { defaultQuest } from './lib/quest'
 
 export const HiddenTerritories: Game = {
   name: 'HiddenTerritories',
@@ -42,107 +43,73 @@ export const HiddenTerritories: Game = {
       activePlayer: 0,
       players: [],
       cells: [
-        { x: 0, y: 0, terrain: 0 },
-        { x: 0, y: 1, terrain: 0 },
-        { x: 0, y: 2, terrain: 0 },
-        { x: 1, y: -1, terrain: 0 },
-        { x: 1, y: 0, terrain: 0 },
-        { x: 2, y: -1, terrain: 0 },
-        { x: 2, y: -2, terrain: 0 },
-        { x: 2, y: 0, terrain: 0 },
-        { x: 1, y: 1, terrain: 0 },
-        { x: 3, y: -2, terrain: 0 },
+        { x: 0, y: 0, terrain: 0, movement_modifier: ['road'] },
+        { x: 0, y: 1, terrain: 0, movement_modifier: ['bridge'] },
+        { x: 0, y: 2, terrain: 0, movement_modifier: [] },
+        { x: 1, y: -1, terrain: 0, movement_modifier: [] },
+        { x: 1, y: 0, terrain: 0, movement_modifier: [] },
+        { x: 2, y: -1, terrain: 0, movement_modifier: [] },
+        { x: 2, y: -2, terrain: 0, movement_modifier: [] },
+        { x: 2, y: 0, terrain: 0, movement_modifier: [] },
+        { x: 1, y: 1, terrain: 0, movement_modifier: [] },
+        { x: 3, y: -2, terrain: 0, movement_modifier: [] },
 
-        { x: -1, y: -1, terrain: 2 },
-        { x: -1, y: -2, terrain: 2 },
-        { x: -1, y: 0, terrain: 2 },
-        { x: -1, y: 1, terrain: 2 },
-        { x: -2, y: -1, terrain: 2 },
-        { x: -2, y: -2, terrain: 2 },
-        { x: -2, y: -3, terrain: 2 },
-        { x: -2, y: 0, terrain: 2 },
-        { x: -2, y: 1, terrain: 2 },
-        { x: -3, y: -2, terrain: 2 },
-        { x: -3, y: -3, terrain: 2 },
-        { x: 0, y: -1, terrain: 2 },
-        { x: 0, y: -2, terrain: 2 },
-        { x: 1, y: -2, terrain: 2 },
-        { x: 2, y: -3, terrain: 2 },
-        { x: 3, y: -3, terrain: 2 },
+        { x: -1, y: -1, terrain: 2, movement_modifier: [] },
+        { x: -1, y: -2, terrain: 2, movement_modifier: [] },
+        { x: -1, y: 0, terrain: 2, movement_modifier: [] },
+        { x: -1, y: 1, terrain: 2, movement_modifier: [] },
+        { x: -2, y: -1, terrain: 2, movement_modifier: [] },
+        { x: -2, y: -2, terrain: 2, movement_modifier: [] },
+        { x: -2, y: -3, terrain: 2, movement_modifier: [] },
+        { x: -2, y: 0, terrain: 2, movement_modifier: [] },
+        { x: -2, y: 1, terrain: 2, movement_modifier: [] },
+        { x: -3, y: -2, terrain: 2, movement_modifier: [] },
+        { x: -3, y: -3, terrain: 2, movement_modifier: [] },
+        { x: 0, y: -1, terrain: 2, movement_modifier: [] },
+        { x: 0, y: -2, terrain: 2, movement_modifier: [] },
+        { x: 1, y: -2, terrain: 2, movement_modifier: [] },
+        { x: 2, y: -3, terrain: 2, movement_modifier: [] },
+        { x: 3, y: -3, terrain: 2, movement_modifier: [] },
         // Hex hex
-        { x: -3, y: -1, terrain: 1 },
-        { x: -3, y: 0, terrain: 1 },
-        { x: -4, y: -1, terrain: 1 },
-        { x: -4, y: 0, terrain: 1 },
-        { x: -4, y: 1, terrain: 1 },
-        { x: -5, y: 0, terrain: 1 },
-        { x: -5, y: 1, terrain: 1 },
+        { x: -3, y: -1, terrain: 1, movement_modifier: [] },
+        { x: -3, y: 0, terrain: 1, movement_modifier: [] },
+        { x: -4, y: -1, terrain: 1, movement_modifier: [] },
+        { x: -4, y: 0, terrain: 1, movement_modifier: [] },
+        { x: -4, y: 1, terrain: 1, movement_modifier: [] },
+        { x: -5, y: 0, terrain: 1, movement_modifier: [] },
+        { x: -5, y: 1, terrain: 1, movement_modifier: [] },
       ],
-      tokens: [
+      terrains: [
         {
-          type: 'food',
-          title: 'Rabbit',
-          health: 1,
-          water: 1,
-          position: {
-            x: 0,
-            y: 0,
-          },
-        },
-        {
-          type: 'food',
-          title: 'Berries',
-          health: 1,
-          position: {
-            x: 0,
-            y: -1,
-          },
-        },
-        {
-          type: 'food',
-          title: 'Water',
-          water: 1,
-          position: {
-            x: 1,
-            y: 0,
-          },
-        },
-        {
-          type: 'raw',
-          title: 'Copper',
-          gold: 487,
-          position: {
-            x: -1,
-            y: -1,
-          },
-        },
-        {
-          type: 'poi',
-          title: 'Ruin',
-          position: {
-            x: -1,
-            y: -1,
-          },
-        },
-        {
-          type: 'cache',
-          title: 'Chest',
-          position: {
-            x: 0,
-            y: 0,
-          },
-          items: [
+          id: 1,
+          name: 'Forest',
+          search: [
             {
-              type: 'raw',
-              title: 'Treasure',
-            },
-            {
-              type: 'trap',
-              title: 'Pungy stick',
+              chance: 0.9,
+              token: {
+                type: 'food',
+                title: 'Rabbit',
+                health: 1,
+                water: 1,
+                position: {
+                  x: 0,
+                  y: 0,
+                },
+              },
             },
           ],
         },
+        { id: 0, name: 'Waterway' },
+        { id: 0, name: 'City/Town/Village' },
+        { id: 0, name: 'Lake' },
+        { id: 0, name: 'Swamp' },
+        { id: 0, name: 'Hills' },
+        { id: 0, name: 'Valley' },
+        { id: 0, name: 'Forest' },
+        { id: 0, name: 'Mountain' },
+        { id: 0, name: 'Plains' },
       ],
+      tokens: defaultQuest.tokens,
     } as GameState),
 
   endIf() {
@@ -230,26 +197,6 @@ export const HiddenTerritories: Game = {
   // playerView: PlayerView.STRIP_SECRETS,
 }
 
-const denizens = [
-  {
-    type: '?',
-    name: 'Goblin',
-    xp: 736,
-    drops: [
-      {
-        type: 'raw',
-        name: 'Gold',
-        gold: 18,
-      },
-      {
-        type: 'weapon',
-        name: 'Dagger',
-        gold: 18,
-      },
-    ],
-  },
-]
-
 // Available in execution stage
 const actions = {
   move(position: any, { flying = false, swimming = false }) {
@@ -294,5 +241,5 @@ export const optionTree: { [key: string]: string[] } = {
 
 // @ts-ignore
 if (typeof window !== 'undefined' && window.false) {
-  console.log('i', denizens, actions, optionTree)
+  // console.log('i', actions, optionTree)
 }
