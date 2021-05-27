@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react'
+import { getJSON } from '@bothrs/util/fetch'
 
 import { PlayerMusterStatus, PlayerStatus } from './Avatar'
 import Button from './Button'
@@ -16,6 +17,7 @@ import Persona from './Persona'
 import Modal from './Modal'
 import Situation from './Situation'
 import { roll, createPersona, locate } from '../lib/player'
+import { gameServer } from '../lib/urls'
 
 export function Board(props: GameProps) {
   // console.log('Board', props)
@@ -39,11 +41,11 @@ export function Board(props: GameProps) {
         }}
       >
         <HexGridUI>
-          {props.G.cells.map(({ x, y, terrain }) => (
+          {props.G.cells.map(({ hex, x, y, t }) => (
             <HexToken x={x} y={y} key={x + '.' + y}>
               <Hexagon
-                label={x + ' | ' + y}
-                terrain={terrain}
+                label={'' + hex || x + ' | ' + y}
+                terrain={props.G.quest?.terrains[t!]}
                 //@ts-ignore
                 // onClick={() => props.moves.travel({ x, y })}
               />
@@ -76,18 +78,30 @@ export function Board(props: GameProps) {
 }
 
 function PreparePhase({ moves, G }: GameProps) {
+  const m = moves as Moves
   const votes = Object.values(G.vote || {})
   return (
     <Modal padding>
       <h1>Prepare phase</h1>
       <h2>Choose a quest</h2>
-      {[1, 2, 3].map((quest) => {
-        const count = votes.filter((v) => v === quest).length
+      {['1', '2', '3'].map((id) => {
+        const count = votes.filter((v) => v === id).length
         return (
-          <p key={quest}>
+          <p key={id}>
             <ButtonTheme action>
-              <Button onClick={() => moves.toggleVote(quest)}>
-                Quest {quest}
+              <Button
+                onClick={async () => {
+                  m.toggleVote(id)
+
+                  const [cells, terrains] = await Promise.all([
+                    getJSON((gameServer() || '') + '/api/cells'),
+                    getJSON((gameServer() || '') + '/api/terrains'),
+                  ])
+
+                  m.loadQuest({ id, cells, terrains })
+                }}
+              >
+                Quest {id}
               </Button>
             </ButtonTheme>
             {count ? (
@@ -95,7 +109,7 @@ function PreparePhase({ moves, G }: GameProps) {
                 {count} votes
                 <Button
                   style={{ marginLeft: 24 }}
-                  onClick={() => moves.loadQuest(quest)}
+                  onClick={() => m.confirmQuest()}
                 >
                   Confirm
                 </Button>

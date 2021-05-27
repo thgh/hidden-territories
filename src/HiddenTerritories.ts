@@ -2,7 +2,7 @@ import type { Game } from 'boardgame.io'
 import { ActivePlayers } from 'boardgame.io/core'
 import type { GameState, Token } from './lib/types'
 
-import { toggleVote, loadQuest } from './moves/prepare'
+import { toggleVote, loadQuest, confirmQuest } from './moves/prepare'
 import {
   initPlayer,
   planAction,
@@ -27,6 +27,7 @@ import {
 } from './moves/daytime'
 import { endNightPhase } from './moves/night'
 import { defaultQuest } from './lib/quest'
+import { defaultMap } from './lib/map'
 
 export const HiddenTerritories: Game = {
   name: 'HiddenTerritories',
@@ -42,73 +43,8 @@ export const HiddenTerritories: Game = {
 
       activePlayer: 0,
       players: [],
-      cells: [
-        { x: 0, y: 0, terrain: 0, movement_modifier: ['road'] },
-        { x: 0, y: 1, terrain: 0, movement_modifier: ['bridge'] },
-        { x: 0, y: 2, terrain: 0, movement_modifier: [] },
-        { x: 1, y: -1, terrain: 0, movement_modifier: [] },
-        { x: 1, y: 0, terrain: 0, movement_modifier: [] },
-        { x: 2, y: -1, terrain: 0, movement_modifier: [] },
-        { x: 2, y: -2, terrain: 0, movement_modifier: [] },
-        { x: 2, y: 0, terrain: 0, movement_modifier: [] },
-        { x: 1, y: 1, terrain: 0, movement_modifier: [] },
-        { x: 3, y: -2, terrain: 0, movement_modifier: [] },
-
-        { x: -1, y: -1, terrain: 2, movement_modifier: [] },
-        { x: -1, y: -2, terrain: 2, movement_modifier: [] },
-        { x: -1, y: 0, terrain: 2, movement_modifier: [] },
-        { x: -1, y: 1, terrain: 2, movement_modifier: [] },
-        { x: -2, y: -1, terrain: 2, movement_modifier: [] },
-        { x: -2, y: -2, terrain: 2, movement_modifier: [] },
-        { x: -2, y: -3, terrain: 2, movement_modifier: [] },
-        { x: -2, y: 0, terrain: 2, movement_modifier: [] },
-        { x: -2, y: 1, terrain: 2, movement_modifier: [] },
-        { x: -3, y: -2, terrain: 2, movement_modifier: [] },
-        { x: -3, y: -3, terrain: 2, movement_modifier: [] },
-        { x: 0, y: -1, terrain: 2, movement_modifier: [] },
-        { x: 0, y: -2, terrain: 2, movement_modifier: [] },
-        { x: 1, y: -2, terrain: 2, movement_modifier: [] },
-        { x: 2, y: -3, terrain: 2, movement_modifier: [] },
-        { x: 3, y: -3, terrain: 2, movement_modifier: [] },
-        // Hex hex
-        { x: -3, y: -1, terrain: 1, movement_modifier: [] },
-        { x: -3, y: 0, terrain: 1, movement_modifier: [] },
-        { x: -4, y: -1, terrain: 1, movement_modifier: [] },
-        { x: -4, y: 0, terrain: 1, movement_modifier: [] },
-        { x: -4, y: 1, terrain: 1, movement_modifier: [] },
-        { x: -5, y: 0, terrain: 1, movement_modifier: [] },
-        { x: -5, y: 1, terrain: 1, movement_modifier: [] },
-      ],
-      terrains: [
-        {
-          id: 1,
-          name: 'Forest',
-          search: [
-            {
-              chance: 0.9,
-              token: {
-                type: 'food',
-                title: 'Rabbit',
-                health: 1,
-                water: 1,
-                position: {
-                  x: 0,
-                  y: 0,
-                },
-              },
-            },
-          ],
-        },
-        { id: 0, name: 'Waterway' },
-        { id: 0, name: 'City/Town/Village' },
-        { id: 0, name: 'Lake' },
-        { id: 0, name: 'Swamp' },
-        { id: 0, name: 'Hills' },
-        { id: 0, name: 'Valley' },
-        { id: 0, name: 'Forest' },
-        { id: 0, name: 'Mountain' },
-        { id: 0, name: 'Plains' },
-      ],
+      cells: defaultMap.cells,
+      terrains: defaultMap.terrains,
       tokens: defaultQuest.tokens,
     } as GameState),
 
@@ -127,6 +63,7 @@ export const HiddenTerritories: Game = {
       moves: {
         toggleVote,
         loadQuest,
+        confirmQuest,
       },
       turn: {
         activePlayers: ActivePlayers.ALL,

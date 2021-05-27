@@ -14,8 +14,9 @@ export interface GameProps extends State<GameState, Ctx> {
 
 export interface Moves {
   // Prepare
-  toggleVote: (option: number) => void
+  toggleVote: (option: string) => void
   loadQuest: (quest: Quest) => void
+  confirmQuest: () => void
 
   // Plan
   planAction: PlanActionCard
@@ -49,7 +50,7 @@ export interface Moves {
 }
 
 export interface GameState {
-  vote: null | { [key: string]: number }
+  vote: null | { [key: string]: string }
   quest: null | Quest
 
   waiting: string[]
@@ -61,16 +62,23 @@ export interface GameState {
 
 export interface Quest {
   id: string
+  cells: Cell[]
+  terrains: Terrain[]
 }
 
 export interface Cell extends Position {
-  terrain?: number
-  movement_modifier: string[]
+  hex: number
+  t: number
 }
 
 export interface Position {
   x: number
   y: number
+}
+
+export interface Terrain {
+  id: number
+  color: string
 }
 
 export interface Token {
@@ -83,7 +91,7 @@ export interface Token {
   items?: Token[]
 }
 
-export interface Player extends Cell {
+export interface Player extends Position {
   id: string
   name: string
   // split in spellbook (spells)

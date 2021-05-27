@@ -12,6 +12,7 @@ import { SocketIO } from 'boardgame.io/multiplayer'
 import { Client, Lobby } from 'boardgame.io/react'
 import { Board } from './components/Board'
 import { HiddenTerritories } from './HiddenTerritories'
+import { ioServer, gameServer } from './lib/urls'
 
 export default function App() {
   return (
@@ -32,10 +33,11 @@ export default function App() {
 }
 
 export function Playground() {
-  const { playerID, matchID } = useParams<{
-    playerID: string
-    matchID: string
-  }>()
+  const { playerID, matchID } =
+    useParams<{
+      playerID: string
+      matchID: string
+    }>()
   const Component = Client({
     game: HiddenTerritories,
     board: Board,
@@ -92,13 +94,4 @@ function Redirecter(props: any) {
     window.location.href = '/game/R_' + props.matchID + '/' + props.playerID
   }, [props.matchID, props.playerID])
   return <div>{JSON.stringify(props, null, 2)}</div>
-}
-
-function ioServer() {
-  return window.location.href.includes(':3000') ? 'localhost:8000' : undefined
-}
-function gameServer() {
-  return window.location.href.includes(':3000')
-    ? 'http://localhost:8000'
-    : undefined
 }

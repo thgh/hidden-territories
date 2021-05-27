@@ -6,7 +6,7 @@ const terrains = ['green', 'blue', '#b96b00']
 
 interface HexagonProps {
   label: string
-  terrain?: number
+  terrain?: { color: string }
 }
 
 export default function Hexagon({ label, terrain, ...rest }: HexagonProps) {
@@ -23,7 +23,7 @@ export default function Hexagon({ label, terrain, ...rest }: HexagonProps) {
         strokeWidth={type ? 0 : stroke}
         strokeLinejoin="round"
         strokeLinecap="round"
-        fill={terrains[terrain || 0]}
+        fill={terrain?.color || '#222'}
         points="87,0 174,50 174,150 87,200 0,150 0,50 87,0"
       />
       {label && (
@@ -32,7 +32,7 @@ export default function Hexagon({ label, terrain, ...rest }: HexagonProps) {
           y="50%"
           dominantBaseline="middle"
           textAnchor="middle"
-          fontSize={300 / label.length}
+          fontSize={300 / (label.length + 2)}
           fill="#ffffff66"
         >
           {label}
