@@ -33,11 +33,10 @@ export default function App() {
 }
 
 export function Playground() {
-  const { playerID, matchID } =
-    useParams<{
-      playerID: string
-      matchID: string
-    }>()
+  const { playerID, matchID } = useParams<{
+    playerID: string
+    matchID: string
+  }>()
   const Component = Client({
     game: HiddenTerritories,
     board: Board,
@@ -69,7 +68,12 @@ export function PlayerSelection() {
 export function Home() {
   return (
     <div>
-      <h1>Welcome! You are in the public lobby.</h1>
+      <h1>Welcome!</h1>
+
+      <a href={'/game/' + new Date().toJSON().slice(0, 10) + '/0'}>
+        <h3>Daily game</h3>
+      </a>
+
       <h3>Public lobby</h3>
       <fieldset>
         <legend>Built-in lobby component</legend>
@@ -83,8 +87,17 @@ export function Home() {
 
       <h3>Private game</h3>
       <p>Create a private game</p>
-      <input />
-      <button>Create</button>
+      <input id="private_id" />
+      <button
+        onClick={() => {
+          window.location.href =
+            '/game/' +
+            (document.getElementById('private_id') as HTMLInputElement)?.value +
+            '/0'
+        }}
+      >
+        Create
+      </button>
     </div>
   )
 }
